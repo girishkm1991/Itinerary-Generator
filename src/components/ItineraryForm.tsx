@@ -30,6 +30,26 @@ const VEHICLES = [
 ];
 
 const LANDMARKS_REGISTRY: { [key: string]: { name: string; spots: string[] } } = {
+  "athirappilly": {
+    name: "Athirappilly",
+    spots: ["Athirappilly Waterfalls", "Vazhachal Waterfalls", "Charpa Falls", "Thumboormuzhy Dam & Butterfly Garden"]
+  },
+  "athirapilly": {
+    name: "Athirappilly",
+    spots: ["Athirappilly Waterfalls", "Vazhachal Waterfalls", "Charpa Falls", "Thumboormuzhy Dam & Butterfly Garden"]
+  },
+  "kochi": {
+    name: "Kochi",
+    spots: ["Fort Kochi Chinese Fishing Nets", "Mattancherry Dutch Palace", "Paradesi Jewish Synagogue", "Marine Drive Promenade", "Lulu Shopping Mall"]
+  },
+  "cochin": {
+    name: "Kochi",
+    spots: ["Fort Kochi Chinese Fishing Nets", "Mattancherry Dutch Palace", "Paradesi Jewish Synagogue", "Marine Drive Promenade", "Lulu Shopping Mall"]
+  },
+  "kerala": {
+    name: "Kerala",
+    spots: ["Munnar Tea Gardens", "Alleppey Houseboat Backwaters", "Athirappilly Waterfalls", "Thekkady Periyar Wildlife Sanctuary", "Kovalam Lighthouse Beach"]
+  },
   "munnar": {
     name: "Munnar",
     spots: ["Eravikulam National Park", "Mattupetty Dam", "Tea Museum & Gardens", "Echo Point", "Kundala Lake"]
@@ -212,12 +232,33 @@ export default function ItineraryForm({ onSubmit, loading, onSelectPreset }: Iti
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    setError(null);
     setFormData(prev => {
       const updated = {
         ...prev,
         [name]: name === "numberOfDays" || name === "numberOfTravelers" ? parseInt(value) || 0 : value
       };
-      // If destination changed, we can dynamically add/update suggested places
+      
+      // Auto-populate sightseeing places if destination matches our LANDMARKS_REGISTRY
+      if (name === "destination") {
+        const destLower = value.toLowerCase().trim();
+        if (destLower) {
+          const matchedSpots: string[] = [];
+          for (const key in LANDMARKS_REGISTRY) {
+            if (destLower.includes(key)) {
+              matchedSpots.push(...LANDMARKS_REGISTRY[key].spots);
+            }
+          }
+          if (matchedSpots.length > 0) {
+            setSelectedPlaces(prevSpots => {
+              const merged = new Set([...prevSpots, ...matchedSpots]);
+              return Array.from(merged);
+            });
+          }
+        } else {
+          setSelectedPlaces([]);
+        }
+      }
       return updated;
     });
   };
@@ -247,14 +288,34 @@ export default function ItineraryForm({ onSubmit, loading, onSelectPreset }: Iti
       setError("Please specify at least 1 traveler.");
       return;
     }
-    if (selectedPlaces.length === 0) {
-      setError("Please select or add at least 1 sightseeing place to visit. Selected list is mandatory.");
+
+    let finalPlaces = [...selectedPlaces];
+    
+    // Automatically include custom typed place if they forgot to click add
+    if (customPlaceInput.trim() && !finalPlaces.includes(customPlaceInput.trim())) {
+      finalPlaces.push(customPlaceInput.trim());
+    }
+
+    // Automatically synchronize/fallback to destination entries if they didn't select custom ones
+    if (finalPlaces.length === 0) {
+      const items = formData.destination
+        .split(/[,;&]|\band\b|\bto\b/)
+        .map(s => s.trim())
+        .filter(Boolean);
+      if (items.length > 0) {
+        finalPlaces = items;
+      }
+    }
+
+    // If still empty (practically impossible because destination is not empty)
+    if (finalPlaces.length === 0) {
+      setError("Please select or add at least 1 sightseeing place to visit.");
       return;
     }
 
     onSubmit({
       ...formData,
-      selectedPlaces
+      selectedPlaces: finalPlaces
     });
   };
 
