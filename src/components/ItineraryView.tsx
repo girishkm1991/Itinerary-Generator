@@ -211,6 +211,78 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
     return found;
   };
 
+  const getDayAttractions = (day: any) => {
+    const locationsSet = new Set<string>();
+    
+    const searchInText = (text: string) => {
+      if (!text) return;
+      const textLower = text.toLowerCase();
+      for (const key in LANDMARKS_REGISTRY) {
+        if (textLower.includes(key)) {
+          locationsSet.add(key);
+        }
+      }
+    };
+
+    searchInText(day.title);
+    searchInText(day.nightStay);
+    if (day.activities) {
+      day.activities.forEach((act: any) => {
+        searchInText(act.location);
+        searchInText(act.title);
+        searchInText(act.description);
+      });
+    }
+    if (day.sightseeingOrder) {
+      day.sightseeingOrder.forEach((spot: string) => searchInText(spot));
+    }
+    if (day.highlights) {
+      day.highlights.forEach((h: string) => searchInText(h));
+    }
+
+    const results: { spot: string; scheduledTime?: string; activityTitle?: string }[] = [];
+    
+    locationsSet.forEach(cityKey => {
+      const registry = LANDMARKS_REGISTRY[cityKey];
+      if (registry) {
+        registry.spots.forEach(spot => {
+          let scheduledTime: string | undefined;
+          let activityTitle: string | undefined;
+          
+          const spotLower = spot.toLowerCase();
+          
+          if (day.activities) {
+            for (const act of day.activities) {
+              const titleLower = act.title.toLowerCase();
+              const descLower = act.description.toLowerCase();
+              if (titleLower.includes(spotLower) || 
+                  descLower.includes(spotLower) || 
+                  spotLower.includes(titleLower)) {
+                scheduledTime = act.time;
+                activityTitle = act.title;
+                break;
+              }
+            }
+          }
+          
+          if (!scheduledTime) {
+            const inSightseeing = day.sightseeingOrder?.some((s: string) => s.toLowerCase().includes(spotLower) || spotLower.includes(s.toLowerCase()));
+            const inHighlights = day.highlights?.some((h: string) => h.toLowerCase().includes(spotLower) || spotLower.includes(h.toLowerCase()));
+            if (inSightseeing || inHighlights) {
+              activityTitle = "Scheduled";
+            }
+          }
+
+          if (!results.some(r => r.spot === spot)) {
+            results.push({ spot, scheduledTime, activityTitle });
+          }
+        });
+      }
+    });
+
+    return results;
+  };
+
   const getWhatsAppMessage = () => {
     let message = `*🌟 imveloTripsIndia Custom Itinerary 🌟*\n\n`;
     message += `*Route:* ${itinerary.pickupLocation} ➡️ ${itinerary.destination}\n`;
@@ -538,38 +610,106 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                         ))}
                       </div>
 
-                      {/* Main Sightseeing Timeline */}
-                      <div className="space-y-4">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                          Curated Hourly Sightseeing Activity
-                        </h4>
+                      {/* Main Sightseeing Timeline & Landmarks (Merged) */}
+                      {getDayAttractions(day).length > 0 ? (
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-1">
+                          {/* Left / Main Column: Hourly timeline */}
+                          <div className="lg:col-span-7 space-y-4">
+                            <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                              <Clock className="w-4 h-4 text-sky-500" /> Curated Hourly Sightseeing Activity
+                            </h4>
 
-                        <div className="relative border-l border-sky-100 pl-4 ml-2 space-y-6">
-                          {day.activities.map((act, index) => (
-                            <div key={index} className="relative space-y-1">
-                              {/* Left colored dot connector */}
-                              <div className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-sky-500 ring-4 ring-white" />
-                              
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                                <span className="text-xs font-black text-sky-600 font-mono bg-sky-100/70 px-2 py-0.5 rounded-md self-start sm:-translate-x-1 sm:translate-y-0 text-[10px]">
-                                  {act.time}
-                                </span>
-                                <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
-                                  <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                                  {act.location}
-                                </span>
-                              </div>
-                              
-                              <h5 className="text-sm font-bold text-slate-800">
-                                {act.title}
-                              </h5>
-                              <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">
-                                {act.description}
-                              </p>
+                            <div className="relative border-l border-sky-100 pl-4 ml-2 space-y-6 pt-2">
+                              {day.activities.map((act, index) => (
+                                <div key={index} className="relative space-y-1">
+                                  {/* Left colored dot connector */}
+                                  <div className="absolute -left-[2px] -translate-x-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-sky-500 ring-4 ring-white" />
+                                  
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                    <span className="text-xs font-black text-sky-600 font-mono bg-sky-100/70 px-2 py-0.5 rounded-md self-start text-[10px]">
+                                      {act.time}
+                                    </span>
+                                    <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
+                                      <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                                      {act.location}
+                                    </span>
+                                  </div>
+                                  
+                                  <h5 className="text-sm font-bold text-slate-800">
+                                    {act.title}
+                                  </h5>
+                                  <p className="text-xs text-slate-500 leading-relaxed">
+                                    {act.description}
+                                  </p>
+                                </div>
+                              ))}
                             </div>
-                          ))}
+                          </div>
+
+                          {/* Right Column: Key attractions checklist targeting this specific day */}
+                          <div className="lg:col-span-5 space-y-4 bg-slate-50 border border-slate-150 rounded-2xl p-4 sm:p-5">
+                            <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5 pb-2 border-b border-slate-200">
+                              <Compass className="w-4 h-4 text-emerald-500 animate-spin-slow" /> Day's Key Attractions Checked
+                            </h4>
+                            <p className="text-[10px] text-slate-500 leading-normal font-medium">
+                              verified landmarks visited during today's schedule:
+                            </p>
+
+                            <ul className="space-y-2 text-[11px] text-slate-600 font-semibold font-sans pt-1">
+                              {getDayAttractions(day).map((item, idx) => (
+                                <li key={idx} className="flex items-start gap-2.5 bg-white border border-slate-100 rounded-xl p-2.5 shadow-sm transition-all hover:border-sky-200/60 hover:bg-sky-50/[0.05]">
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                                  <div className="space-y-0.5">
+                                    <span className="text-slate-800 text-xs font-bold block">{item.spot}</span>
+                                    {item.scheduledTime ? (
+                                      <span className="text-[9px] bg-slate-100 border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono font-black uppercase">
+                                        Scheduled {item.scheduledTime}
+                                      </span>
+                                    ) : (
+                                      <span className="text-[9px] bg-sky-50 text-sky-700 border border-sky-100 px-1.5 py-0.5 rounded font-semibold">
+                                        Included &amp; Covered
+                                      </span>
+                                    )}
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        /* Simple Fallback when no attractions map to the day */
+                        <div className="space-y-4">
+                          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                            Curated Hourly Sightseeing Activity
+                          </h4>
+
+                          <div className="relative border-l border-sky-100 pl-4 ml-2 space-y-6">
+                            {day.activities.map((act, index) => (
+                              <div key={index} className="relative space-y-1">
+                                {/* Left colored dot connector */}
+                                <div className="absolute -left-[2px] -translate-x-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-sky-500 ring-4 ring-white" />
+                                
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                  <span className="text-xs font-black text-sky-600 font-mono bg-sky-100/70 px-2 py-0.5 rounded-md self-start text-[10px]">
+                                    {act.time}
+                                  </span>
+                                  <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                                    {act.location}
+                                  </span>
+                                </div>
+                                
+                                <h5 className="text-sm font-bold text-slate-800">
+                                  {act.title}
+                                </h5>
+                                <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">
+                                  {act.description}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Sightseeing order shortcut */}
                       <div className="p-3 bg-white border border-slate-100 rounded-xl">
@@ -709,36 +849,7 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
             </div>
           </div>
 
-          {/* Key Sightseeing & Attractions Checklist */}
-          {getRouteDestinations().length > 0 && (
-            <div className="bg-white border border-slate-200/80 rounded-3xl p-5 sm:p-6 space-y-4 shadow-sm">
-                <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5">
-                  <Compass className="w-4 h-4 text-emerald-500 animate-spin-slow" />
-                  Key Sightseeing Attractions
-                </h4>
-                <p className="text-[11px] text-slate-500 leading-normal font-medium">
-                  curated list of top-rated highlights &amp; landmarks you will visit in these locations:
-                </p>
-                
-                <div className="space-y-4.5">
-                  {getRouteDestinations().map((city, cIdx) => (
-                    <div key={cIdx} className="space-y-2 border-l-2 border-sky-200 pl-3.5">
-                      <span className="text-xs font-black text-slate-800 uppercase tracking-wider block flex items-center gap-1">
-                        <span>📍</span> {city.name}
-                      </span>
-                      <ul className="grid grid-cols-1 gap-1.5 text-[11px] text-slate-600 font-semibold font-sans">
-                        {city.spots.map((spot, sIdx) => (
-                          <li key={sIdx} className="flex items-center gap-2">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                            <span>{spot}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-            </div>
-          )}
+
 
           {/* Pricing estimation widget */}
           {itinerary.estimatedCostRange && (
