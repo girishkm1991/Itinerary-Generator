@@ -17,7 +17,7 @@ export default function Navbar({ onScrollToForm, onScrollToFAQ, onScrollToDestin
               <Compass className="w-6 h-6 animate-spin-slow" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-sky-700 to-emerald-600 bg-clip-text text-transparent tracking-tight">
-              imveloTripsIndia<span className="text-emerald-500 text-xs font-semibold uppercase tracking-wider ml-1 px-1.5 py-0.5 bg-emerald-50 border border-emerald-200 rounded-md">AI</span>
+              imveloTripsIndia
             </span>
           </div>
 

@@ -73,11 +73,19 @@ body {
     display: none !important;
   }
 
+  /* Robust selection to hide other high-level wrappers entirely from the print renderer */
+  body > *:not(#root),
+  #root > *:not(div),
+  #root > div > *:not(.max-w-7xl),
+  .max-w-7xl > *:not(.animate-fade-in) {
+    display: none !important;
+  }
+
   /* Reset document defaults */
   body, html {
     background: #ffffff !important;
     color: #000000 !important;
-    font-size: 12pt !important;
+    font-size: 11pt !important;
     margin: 0 !important;
     padding: 0 !important;
   }
@@ -86,6 +94,14 @@ body {
   .mesh-bg {
     background: none !important;
     background-color: #ffffff !important;
+  }
+
+  /* Force outer container to reset spacing */
+  .max-w-7xl {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   /* Force itinerary result section to occupy full width */

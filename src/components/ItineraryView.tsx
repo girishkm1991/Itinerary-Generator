@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, FormEvent } from "react";
 import { 
   Calendar, 
   MapPin, 
@@ -18,7 +18,9 @@ import {
   ChevronUp, 
   ArrowRight,
   TrendingUp,
-  DollarSign
+  DollarSign,
+  Phone,
+  MessageSquare
 } from "lucide-react";
 import { ItineraryResponse } from "../types";
 
@@ -45,6 +47,53 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
   const [copiedLink, setCopiedLink] = useState(false);
   const [exportedPdfStatus, setExportedPdfStatus] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [whatsappPhone, setWhatsappPhone] = useState("");
+  const [whatsappSent, setWhatsappSent] = useState(false);
+
+  const handleSendWhatsApp = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!whatsappPhone.trim()) return;
+    
+    // Clean up non-digits
+    const cleanPhone = whatsappPhone.replace(/\D/g, "");
+    // Ensure accurate country code for India defaults if 10-digits
+    const finalPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+    
+    // Build beautiful formatted itinerary text
+    let message = `*🌟 imveloTripsIndia Custom Itinerary 🌟*\n\n`;
+    message += `*Route:* ${itinerary.pickupLocation} ➡️ ${itinerary.destination}\n`;
+    message += `*Duration:* ${itinerary.days.length} Days / ${itinerary.days.length - 1} Nights\n`;
+    message += `*Vehicle Class:* ${itinerary.vehicleType}\n`;
+    if (itinerary.estimatedCostRange) {
+      message += `*Est. Package Cost:* ₹${new Intl.NumberFormat('en-IN').format(itinerary.estimatedCostRange.min)} - ₹${new Intl.NumberFormat('en-IN').format(itinerary.estimatedCostRange.max)} INR\n`;
+    }
+    message += `\n*TRIP SUMMARY:*\n${itinerary.tripSummary}\n\n`;
+    
+    message += `*DAILY BREAKDOWN:*\n`;
+    itinerary.days.forEach((day: any) => {
+      message += `📅 *Day ${day.dayNumber} - ${day.title}*\n`;
+      message += `• Morning: ${day.morningActivity.activityName}\n`;
+      message += `• Afternoon: ${day.afternoonActivity.activityName}\n`;
+      message += `• Night Stay: ${day.nightStay}\n\n`;
+    });
+    
+    if (itinerary.tips && itinerary.tips.length > 0) {
+      message += `*PRO TRAVEL TIPS:*\n`;
+      itinerary.tips.forEach((tip: string, id: number) => {
+        message += `${id + 1}. ${tip}\n`;
+      });
+      message += `\n`;
+    }
+    
+    message += `📞 *Book/Inquire Now:* +919895712912\n`;
+    message += `🔗 *View Interactive Live Itinerary:* ${window.location.href}`;
+    
+    // Launch WhatsApp
+    const waUrl = `https://api.whatsapp.com/send?phone=${finalPhone}&text=${encodeURIComponent(message)}`;
+    window.open(waUrl, "_blank");
+    setWhatsappSent(true);
+    setTimeout(() => setWhatsappSent(false), 5000);
+  };
 
   // Determine beautiful backdrop image
   const getDestinationImage = () => {
@@ -174,6 +223,39 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
             <p className="text-slate-600 text-sm leading-relaxed">
               {itinerary.tripSummary}
             </p>
+          </div>
+
+          {/* WhatsApp Sharing Card */}
+          <div className="glass-panel p-5 sm:p-6 rounded-3xl space-y-4 border border-emerald-500/20 bg-emerald-500/[0.02] no-print">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                <MessageSquare className="w-5 h-5 shrink-0" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">Send Itinerary directly to Customer via WhatsApp</h3>
+                <p className="text-[11px] text-slate-500">Input customer's WhatsApp number to quickly compile and open the chat with pre-written schedule.</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSendWhatsApp} className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">+91</span>
+                <input
+                  type="tel"
+                  placeholder="Enter 10-digit customer phone number"
+                  value={whatsappPhone}
+                  onChange={(e) => setWhatsappPhone(e.target.value)}
+                  className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-semibold"
+                />
+              </div>
+              <button
+                type="submit"
+                className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-emerald-50 shrink-0"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>{whatsappSent ? "Opened in WhatsApp!" : "Compile & Send"}</span>
+              </button>
+            </form>
           </div>
 
           {/* Day By Day interactive schedules */}
@@ -447,6 +529,42 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
               </p>
             </div>
           )}
+
+          {/* Direct Booking & Support Call Buttons */}
+          <div className="p-5 sm:p-6 bg-white border border-slate-200 rounded-3xl space-y-4 shadow-sm no-print">
+            <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5">
+              <AlertCircle className="w-4 h-4 text-sky-500" />
+              Confirm Your Booking
+            </h4>
+            
+            <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+              Ready to secure your fleet class with chauffeured driver allowance? Contact our customer care desk to block your vehicle &amp; dates.
+            </p>
+
+            <div className="grid grid-cols-1 gap-2.5">
+              <a
+                href={`https://wa.me/919895712912?text=Hello%20imveloTripsIndia%2C%20I%20would%20like%20to%20confidently%20book%20my%20trip%20to%20${encodeURIComponent(itinerary.destination)}%20starting%20on%20${itinerary.travelDate}%20for%20${itinerary.days.length}%20days.%20Selected%20vehicle%20class:%20${itinerary.vehicleType}.`}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white rounded-2xl text-xs font-black tracking-wide text-center flex items-center justify-center gap-2 shadow-md shadow-emerald-100/70 transition-all duration-300 animate-pulse hover:animate-none"
+              >
+                <MessageSquare className="w-4 h-4" />
+                BOOK TRIP NOW VIA WHATSAPP
+              </a>
+
+              <a
+                href="tel:+919895712912"
+                className="w-full py-3 bg-slate-50 border border-slate-200 text-slate-800 hover:bg-slate-100 rounded-2xl text-xs font-black tracking-wide text-center flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <Phone className="w-4 h-4 text-sky-500" />
+                CALL NOW: +91 9895712912
+              </a>
+            </div>
+            
+            <p className="text-[9px] text-slate-400 text-center leading-normal">
+              *Instant booking callback generated during normal hours. Zero credit card prepayment required.
+            </p>
+          </div>
 
           {/* Expert Travel Guidelines tips */}
           <div className="p-5 sm:p-6 bg-emerald-500/5 border border-emerald-500/10 rounded-3xl space-y-4">
