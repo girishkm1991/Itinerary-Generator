@@ -7,6 +7,7 @@ export interface ItineraryRequest {
   vehicleType: string;
   tripType: 'One Way' | 'Round Trip';
   specialRequests?: string;
+  selectedPlaces?: string[];
 }
 
 export interface MealSuggestions {

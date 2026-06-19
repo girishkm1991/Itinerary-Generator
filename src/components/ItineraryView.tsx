@@ -181,6 +181,7 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
   const [isPrinting, setIsPrinting] = useState(false);
   const [whatsappPhone, setWhatsappPhone] = useState("");
   const [whatsappSent, setWhatsappSent] = useState(false);
+  const [activeDayPage, setActiveDayPage] = useState<number | "all">(1);
 
   const getRouteDestinations = () => {
     const destString = itinerary.destination.toLowerCase();
@@ -672,31 +673,72 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
 
           {/* Day By Day interactive schedules */}
           <div className="space-y-4">
-            <div className="flex justify-between items-center px-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
               <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest">
                 Daily Sightseeing Program
               </h4>
-              <span className="text-xs text-sky-600 font-semibold">
-                Click day cards to view full transit &amp; dining schedules
+              <span className="text-xs text-sky-600 font-semibold no-print">
+                {activeDayPage === "all" ? "Click day cards to view full details" : "Use pages or tabs above to flip pages"}
               </span>
             </div>
 
-            {itinerary.days.map((day) => {
-              const isOpen = isPrinting || expandedDay === day.dayNumber;
-              return (
-                <div 
+            {/* Pagination Tabs Bar */}
+            <div className="bg-slate-100 p-1.5 rounded-2xl flex flex-wrap items-center gap-1 border border-slate-200 no-print">
+              <button
+                type="button"
+                onClick={() => {
+                  setExpandedDay(1);
+                  setActiveDayPage("all");
+                }}
+                className={`flex-1 min-w-[100px] text-center py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                  activeDayPage === "all"
+                    ? "bg-slate-800 text-white shadow font-black"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-semibold"
+                }`}
+              >
+                📄 All Days (Single View)
+              </button>
+              {itinerary.days.map((day) => (
+                <button
                   key={day.dayNumber}
-                  className={`rounded-3xl border transition-all duration-300 overflow-hidden ${
-                    isOpen 
-                      ? "bg-white border-sky-200 shadow-md" 
-                      : "bg-white/60 hover:bg-white border-slate-200/60 shadow-sm"
+                  type="button"
+                  onClick={() => {
+                    setExpandedDay(day.dayNumber);
+                    setActiveDayPage(day.dayNumber);
+                  }}
+                  className={`flex-1 min-w-[70px] text-center py-2 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                    activeDayPage === day.dayNumber
+                      ? "bg-sky-600 text-white shadow-sm ring-2 ring-sky-100 font-black"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-semibold"
                   }`}
                 >
-                  {/* Collapsible Header */}
-                  <button
-                    onClick={() => toggleDayExpansion(day.dayNumber)}
-                    className="w-full text-left p-5 sm:p-6 flex items-center justify-between gap-4 focus:outline-none cursor-pointer"
+                  📆 Day {day.dayNumber}
+                </button>
+              ))}
+            </div>
+
+            {itinerary.days
+              .filter(day => isPrinting || activeDayPage === "all" || activeDayPage === day.dayNumber)
+              .map((day) => {
+                const isOpen = isPrinting || activeDayPage !== "all" || expandedDay === day.dayNumber;
+                return (
+                  <div 
+                    key={day.dayNumber}
+                    className={`rounded-3xl border transition-all duration-300 overflow-hidden ${
+                      isOpen 
+                        ? "bg-white border-sky-200 shadow-md" 
+                        : "bg-white/60 hover:bg-white border-slate-200/60 shadow-sm"
+                    }`}
                   >
+                    {/* Collapsible Header */}
+                    <button
+                      onClick={() => {
+                        if (activeDayPage === "all") {
+                          setExpandedDay(expandedDay === day.dayNumber ? null : day.dayNumber);
+                        }
+                      }}
+                      className="w-full text-left p-5 sm:p-6 flex items-center justify-between gap-4 focus:outline-none cursor-pointer"
+                    >
                     <div className="flex items-center gap-4">
                       {/* Pill style badge */}
                       <div className={`px-4 py-2 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 shadow-sm transition-all whitespace-nowrap ${
@@ -900,6 +942,39 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                           Tax-included stay suggested
                         </span>
                       </div>
+
+                      {/* Day Pagers / Page Turners */}
+                      {activeDayPage !== "all" && (
+                        <div className="pt-5 border-t border-slate-150 flex items-center justify-between no-print gap-4">
+                          <button
+                            type="button"
+                            disabled={day.dayNumber === 1}
+                            onClick={() => {
+                              const prev = day.dayNumber - 1;
+                              setExpandedDay(prev);
+                              setActiveDayPage(prev);
+                            }}
+                            className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                          >
+                            ← Day {day.dayNumber - 1}
+                          </button>
+                          <span className="text-[11px] text-slate-400 font-bold font-mono">
+                            Page {day.dayNumber} of {itinerary.days.length}
+                          </span>
+                          <button
+                            type="button"
+                            disabled={day.dayNumber === itinerary.days.length}
+                            onClick={() => {
+                              const next = day.dayNumber + 1;
+                              setExpandedDay(next);
+                              setActiveDayPage(next);
+                            }}
+                            className="px-4 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-100 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                          >
+                            Day {day.dayNumber + 1} →
+                          </button>
+                        </div>
+                      )}
 
                     </div>
                   )}

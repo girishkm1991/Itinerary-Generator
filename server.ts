@@ -198,6 +198,137 @@ if (apiKey && apiKey !== "MY_GEMINI_API_KEY") {
   console.log("No valid GEMINI_API_KEY found. Utilizing high-fidelity local itinerary planner backup.");
 }
 
+const LANDMARKS_REGISTRY: { [key: string]: { name: string; spots: string[] } } = {
+  "munnar": {
+    name: "Munnar",
+    spots: ["Eravikulam National Park", "Mattupetty Dam", "Tea Museum & Gardens", "Echo Point", "Kundala Lake"]
+  },
+  "thekkady": {
+    name: "Thekkady",
+    spots: ["Periyar National Park Safari", "Periyar Lake Boating", "Spices Plantation Tour", "Elephant Junction", "Kadathanadan Martial Arts"]
+  },
+  "alleppey": {
+    name: "Alleppey",
+    spots: ["Vembanad Lake Houseboat Cruise", "Alappuzha Beach & Lighthouse", "Kuttanad Backwaters", "Pathiramanal Island"]
+  },
+  "alappuzha": {
+    name: "Alleppey",
+    spots: ["Vembanad Lake Houseboat Cruise", "Alappuzha Beach & Lighthouse", "Kuttanad Backwaters", "Pathiramanal Island"]
+  },
+  "kumarakom": {
+    name: "Kumarakom",
+    spots: ["Kumarakom Bird Sanctuary", "Vembanad Lake Sunset Cruise", "Aruvikkuzhi Waterfall"]
+  },
+  "wayanad": {
+    name: "Wayanad",
+    spots: ["Banasura Sagar Dam", "Edakkal Caves & Carvings", "Chembra Peak Trek", "Pookode Lake Boating", "Soochipara Waterfalls"]
+  },
+  "kovalam": {
+    name: "Kovalam",
+    spots: ["Lighthouse Beach", "Hawa Beach & Samudra Beach", "Halcyon Castle & Vizhinjam Marine Aquarium"]
+  },
+  "trivandrum": {
+    name: "Trivandrum",
+    spots: ["Sree Padmanabhaswamy Temple", "Napier Museum & Zoo", "Shangumugham Beach Sunset"]
+  },
+  "vagamon": {
+    name: "Vagamon",
+    spots: ["Pine Valley Forest", "Kurisumala Ashram & Hill", "Vagamon Meadows & Lake"]
+  },
+  "shimla": {
+    name: "Shimla",
+    spots: ["The Ridge & Mall Road", "Jakhoo Monkey Temple", "Kufri Adventure Park", "Christ Church Heritage"]
+  },
+  "manali": {
+    name: "Manali",
+    spots: ["Solang Valley Adventure", "Hadimba Temple", "Rohtang Pass Snow View", "Jogini Waterfall Trek", "Old Manali Cafes"]
+  },
+  "agra": {
+    name: "Agra",
+    spots: ["The Majestic Taj Mahal", "Agra Fort", "Fatehpur Sikri Royal Complex", "Mehtab Bagh Views"]
+  },
+  "jaipur": {
+    name: "Jaipur",
+    spots: ["Amer Fort", "Hawa Mahal (Palace of Winds)", "City Palace Museum", "Jantar Mantar Observatory", "Chokhi Dhani Ethnic Village"]
+  },
+  "delhi": {
+    name: "Delhi",
+    spots: ["Red Fort", "Qutub Minar", "India Gate", "Lotus Temple", "Humayun's Tomb", "Akshardham Temple"]
+  },
+  "dehradun": {
+    name: "Dehradun",
+    spots: ["Robber's Cave (Guchhupani)", "Sahastradhara Natural Sulphur Springs", "Mindrolling Buddhist Monastery"]
+  },
+  "haridwar": {
+    name: "Haridwar",
+    spots: ["Har Ki Pauri Ganga Aarti", "Mansa Devi Temple Cable Car", "Chandi Devi Temple"]
+  },
+  "rishikesh": {
+    name: "Rishikesh",
+    spots: ["Laxman Jhula & Ram Jhula", "Triveni Ghat Evening Aarti", "Beatles Ashram", "White Water River Rafting"]
+  },
+  "nainital": {
+    name: "Nainital",
+    spots: ["Naini Lake Yachting", "Naina Peak Views", "Snow View Point Cable Car", "Tiffin Top Sunset"]
+  },
+  "dharamshala": {
+    name: "Dharamshala",
+    spots: ["Dalai Lama Temple Complex", "Bhagsunag Waterfall & Temple", "McLeod Ganj Tibetan Cafe Trail", "HPCA Cricket Stadium"]
+  },
+  "mussoorie": {
+    name: "Mussoorie",
+    spots: ["Kempty Falls", "Mall Road Promenade", "Lal Tibba Scenic View", "Gun Hill Ropeway"]
+  },
+  "bangalore": {
+    name: "Bangalore",
+    spots: ["Lalbagh Botanical Garden", "Cubbon Park Walkways", "Bangalore Palace Tour", "Nandi Hills Sunrise"]
+  },
+  "bengaluru": {
+    name: "Bangalore",
+    spots: ["Lalbagh Botanical Garden", "Cubbon Park Walkways", "Bangalore Palace Tour", "Nandi Hills Sunrise"]
+  },
+  "coorg": {
+    name: "Coorg",
+    spots: ["Abbey Falls", "Raja's Seat Gardens", "Golden Temple (Namdroling)", "Dubare Elephant Camp"]
+  },
+  "mysore": {
+    name: "Mysore",
+    spots: ["Mysore Palace Illumination", "Chamundi Hill & Nandi", "Brindavan Gardens Fountain Show", "Mysore Zoo Heritage"]
+  },
+  "ooty": {
+    name: "Ooty",
+    spots: ["Botanical Gardens", "Ooty Lake Boating", "Doddabetta Peak Views", "Rose Garden Botanical Exhibits"]
+  },
+  "chikmagalur": {
+    name: "Chikmagalur",
+    spots: ["Mullayanagiri Peak (Highest in Karnataka)", "Baba Budangiri Heritage", "Hebbe Falls", "Kemmangundi Hill Resort"]
+  },
+  "pondicherry": {
+    name: "Pondicherry",
+    spots: ["Promenade Beach Walking", "Auroville Matrimandir", "French Quarter Colonial Walk", "Paradise Beach Island"]
+  },
+  "goa": {
+    name: "Goa",
+    spots: ["Calangute & Baga Beaches", "Basilica of Bom Jesus (UNESCO)", "Fort Aguada", "Dudhsagar Waterfalls Trail"]
+  },
+  "mumbai": {
+    name: "Mumbai",
+    spots: ["Gateway of India", "Marine Drive Promenade", "Elephanta Caves ferry ride", "Siddhivinayak Temple", "Juhu Beach Street Food"]
+  },
+  "pune": {
+    name: "Pune",
+    spots: ["Shaniwar Wada Palace Fort", "Aga Khan Palace Museum", "Sinhagad Fort Hill Trek"]
+  },
+  "lonavala": {
+    name: "Lonavala",
+    spots: ["Tiger's Leap Gorge", "Bhushi Dam Cascades", "Karla Caves & Ekvira Temple"]
+  },
+  "mahabaleshwar": {
+    name: "Mahabaleshwar",
+    spots: ["Arthur's Seat Viewpoint", "Mapro Garden Strawberry Tasting", "Venna Lake Boating"]
+  }
+};
+
 // Helper to generate a highly structured mock itinerary when key is missing or fails
 function generateMockItinerary(reqBody: any): any {
   const {
@@ -209,17 +340,18 @@ function generateMockItinerary(reqBody: any): any {
     vehicleType,
     tripType,
     specialRequests,
+    selectedPlaces = []
   } = reqBody;
 
-  const daysCount = numberOfDays || 3;
-  const travelers = numberOfTravelers || 2;
+  const daysCount = parseInt(numberOfDays) || 3;
+  const travelers = parseInt(numberOfTravelers) || 2;
   const vehicle = vehicleType || "Sedan";
 
   // Calculate high-fidelity distance parameters using our path computer
   const distance = computeTotalKM(pickupLocation, destination, tripType, daysCount);
   const drivingTimeStr = `${(distance / 50).toFixed(1)} hours${tripType === "Round Trip" ? " (includes local sightseeing)" : ""}`;
 
-  // Realistic billing based on premium cab mileage rates for different classes of vehicle
+  // Realistic billing based on premium rates for different classes of vehicle
   const rates: { [key: string]: number } = {
     "Sedan": 14,
     "Ertiga": 17,
@@ -234,63 +366,88 @@ function generateMockItinerary(reqBody: any): any {
   const baseCost = distance * rate;
   const driverCharge = daysCount * 450;
 
-  const mockDays = [];
-  const sightseeingPool = [
-    ["Grand City Palace", "Beautiful Scenic Overlook", "Centuries-old Fort Heritage Site", "Local Craft & Silk Market"],
-    ["Mystic Botanical Gardens", "Adventure Sports Arena", "Authentic Village Culinary Tour", "Serene Lake Sunset Boating"],
-    ["Acoustic Cultural Music Show", "Ancient Whispering Caves", "Riverside Scenic Walking Tour", "Stately Heritage Museum"],
-    ["Spiritual Temple Hike", "Local Artisan Workshops", "Sunset Horizon Viewing Point", "Traditional Dining Hall Experience"],
-    ["Wildlife Sanctuary Safari", "Verdant Spice Plantations Tour", "Cascading Forest Waterfalls", "Main Street Souvenir Hub"]
-  ];
+  // Enforce customer's selected places under MANDATORY constraints
+  let spotsToUse: string[] = [];
+  if (selectedPlaces && selectedPlaces.length > 0) {
+    spotsToUse = [...selectedPlaces];
+  } else {
+    // Re-resolve matching spots in case none passed
+    const destLower = destination.toLowerCase();
+    const matchedKey = Object.keys(LANDMARKS_REGISTRY).find(key => destLower.includes(key));
+    if (matchedKey) {
+      spotsToUse = [...LANDMARKS_REGISTRY[matchedKey].spots];
+    } else {
+      spotsToUse = ["Local Scenic Highlights", "Famous Town Center", "Traditional Crafts Market"];
+    }
+  }
 
+  // Distribute spots intelligently across active days count: each place exactly once
+  const daysSpots: string[][] = Array.from({ length: daysCount }, () => []);
+  spotsToUse.forEach((spot, index) => {
+    const dayIndex = index % daysCount;
+    daysSpots[dayIndex].push(spot);
+  });
+
+  const mockDays = [];
   for (let i = 1; i <= daysCount; i++) {
-    const sightseeing = sightseeingPool[(i - 1) % sightseeingPool.length];
+    const daySpots = daysSpots[i - 1] || [];
+
+    const highlights = daySpots.length > 0
+      ? daySpots.map(spot => `Premium curated tour of ${spot}`)
+      : [`Relax and explore local town streets in ${destination}`, "Savor fine regional hospitality options"];
+
+    if (highlights.length < 3) {
+      highlights.push(`Taste authentic premium dining dishes matching your flavor requests`);
+      highlights.push(`Smooth inner-city transit managed by your dedicated ${vehicle} chauffeur`);
+    }
+
+    const activities = daySpots.map((spot, spotIdx) => {
+      const hours = 9 + spotIdx * 3;
+      const ampm = hours >= 12 ? "PM" : "AM";
+      const formattedHour = hours > 12 ? hours - 12 : hours;
+      const timeStr = `${String(formattedHour).padStart(2, '0')}:00 ${ampm}`;
+      return {
+        time: timeStr,
+        title: `Curated Sightseeing at ${spot}`,
+        description: `Explore the magnificent architecture, stunning vistas, and local historical facets of ${spot}. Spend quality time enjoying activities.`,
+        location: spot
+      };
+    });
+
+    if (activities.length === 0) {
+      activities.push({
+        time: "10:30 AM",
+        title: "Leisure Exploration & Shopping",
+        description: `Dedicated leisure day window in ${destination}. Stroll across regional craft boutiques and enjoy local street flavors at your absolute pacing preference.`,
+        location: `${destination} Town Center`
+      });
+    }
+
     mockDays.push({
       dayNumber: i,
       title: i === 1 
-        ? `Exotic Arrival & Exploring ${destination}` 
+        ? `Grand Arrival & Exploring ${destination}` 
         : i === daysCount 
-          ? `Local Souvenirs & Scenic Departure` 
-          : `Deep Dive into ${destination}'s Treasures`,
-      highlights: [
-        `Check-in and refresh with regional welcome hospitality`,
-        `Fascinating local guided walk through the heart of ${destination}`,
-        `Exclusive authentic photo opportunity at standard viewpoints`
-      ],
-      sightseeingOrder: sightseeing,
-      activities: [
-        {
-          time: "09:00 AM",
-          title: `Start Morning Sightseeing`,
-          description: `Depart from hotel to visit ${sightseeing[0]}. Experience its historical significance and majestic architecture.`,
-          location: sightseeing[0]
-        },
-        {
-          time: "02:00 PM",
-          title: `Afternoon Scenic Visit`,
-          description: `Proceed to ${sightseeing[1]}. Marvel at the breathtaking natural views and capture timeless memories.`,
-          location: sightseeing[1]
-        },
-        {
-          time: "05:30 PM",
-          title: `Twilight Cultural Experience`,
-          description: `Stroll through ${sightseeing[2]} where you can feel the true local culture, history, and craft traditions.`,
-          location: sightseeing[2]
-        }
-      ],
+          ? `Last Sightseeing & Scenic Departure` 
+          : `Deep Sightseeing Program in ${destination}`,
+      highlights: highlights.slice(0, 3),
+      sightseeingOrder: daySpots.length > 0 ? daySpots : [`${destination} Leisure Window`],
+      activities,
       meals: {
-        breakfast: "Fresh localized breakfast at the premier hotel lounge",
-        lunch: `Leisurely lunch specializing in local regional specialties near ${sightseeing[1]}`,
-        dinner: `Authentic traditional dinner serving famous organic delicacies at a local venue`
+        breakfast: `Healthy local organic breakfast buffet at your ${destination} premium lodging`,
+        lunch: `Tailored local lunch catering to your requests near your active sightseeing points`,
+        dinner: `Authentic traditional dinner serving regional specialties at high-class venue`
       },
-      estimatedTravelTime: `${Math.floor(1 + Math.random() * 2)}.5 hours of inner city transit`,
-      nightStay: `Premium Luxury Resort in ${destination}`,
-      dailyHighlight: `Stunning sunset outlook and immersive cultural interactions with friendly regional hosts.`
+      estimatedTravelTime: `${Math.floor(1 + Math.random() * 2)}.5 hours of active inner road transit`,
+      nightStay: `Luxury Hotel or Resort in ${destination}`,
+      dailyHighlight: daySpots.length > 0 
+        ? `Memorable evening exploring the iconic landmarks of ${daySpots[daySpots.length - 1]}.`
+        : `A relaxing evening enjoying the grand hospitality and premium atmosphere in ${destination}.`
     });
   }
 
   return {
-    tripSummary: `A beautiful and tailored travel itinerary starting from ${pickupLocation} and taking you through the magnificent destinations of ${destination}. Designed precisely for ${travelers} travelers representing a ${tripType} journey in a comfortable ${vehicle}. ${specialRequests ? `Special request note: "${specialRequests}" is integrated.` : ""}`,
+    tripSummary: `A beautiful personalized travel itinerary starting from ${pickupLocation} and taking you through the exquisite sightseeing spots in ${destination}. Perfectly arranged for ${travelers} travelers driving in a comfortable private chauffeured ${vehicle} for ${daysCount} complete days.`,
     pickupLocation,
     destination,
     travelDate,
@@ -305,9 +462,9 @@ function generateMockItinerary(reqBody: any): any {
       ? `After scenic afternoon visits, check out from the hotel and begin your comfortable return travel back to ${pickupLocation} in your private ${vehicle}.`
       : `Complete your comfortable final day-out and check-out, with standard drop-off at your central ${destination} transit hub.`,
     tips: [
-      "Carry lightweight, comfortable walking shoes for optimal exploration.",
-      "Stay well hydrated throughout the daytime excursions.",
-      "Inform the private vehicle driver of any changes to dietary options early."
+      "Carry comfortable, supportive walking footwear for outdoor exploration.",
+      "Stay hydrated during sightseeing excursions to beat fatigue.",
+      "Inform your professional driver of any changes to scheduled stops early."
     ],
     estimatedCostRange: {
       min: Math.round(baseCost + driverCharge),
@@ -328,7 +485,8 @@ app.post("/api/generate-itinerary", async (req: Request, res: Response) => {
       numberOfTravelers, 
       vehicleType, 
       tripType, 
-      specialRequests 
+      specialRequests,
+      selectedPlaces = []
     } = req.body;
 
     // Validate inputs
@@ -345,11 +503,11 @@ app.post("/api/generate-itinerary", async (req: Request, res: Response) => {
       return;
     }
 
-    const sysPrompt = `You are a world-class travel planner and concierge service. Your job is to generate a comprehensive, highly customized, and visually impressive day-wise travel itinerary from a "Pickup Location" to a "Destination" for a specified number of travel days, travelers, and vehicle type.
-Ensure that the sightseeing landmarks are physically accurate for the destination, meals match regional delicacies, and transit times are realistic.
+    const sysPrompt = `You are a world-class premier travel planner and concierge service. Your job is to generate a comprehensive, highly customized, and visually impressive day-wise travel itinerary from a "Pickup Location" to a "Destination" for a specified number of travel days, travelers, and vehicle type.
+You MUST adhere strictly to the list of user-selected sightseeing places. Do NOT invent or include generic sightseeing attractions under any circumstances. Every sightseeing location in the itinerary days must map elements from the user's selected list.
 Your response MUST comply strictly with the JSON schema requested. Do not return any extra markdown text outside the valid JSON object.`;
 
-    const userPrompt = `Please plan an amazing travel itinerary with these parameters:
+    const userPrompt = `Please plan an amazing, highly customized travel itinerary with these parameters:
 - Pickup Location: ${pickupLocation}
 - Destination: ${destination}
 - Travel Date: ${travelDate}
@@ -357,9 +515,18 @@ Your response MUST comply strictly with the JSON schema requested. Do not return
 - Number of Travelers: ${numberOfTravelers} adults
 - Private Vehicle Selected: ${vehicleType}
 - Journey Type: ${tripType}
+- Selected Sightseeing Places to Visit: ${JSON.stringify(selectedPlaces)}
 - Custom preferences/requests: ${specialRequests || "None"}.
 
-Make sure to estimate travel distance (KM) and total driving time realistically based on the route between ${pickupLocation} and ${destination}. Suggest Breakfast, Lunch, Dinner, optimized sightseeing order, specific timestamps, activities, daily highlights, night stay locations, return journey on the final day, and three helpful travel tips. Provide an estimated cost range in INR (Indian Rupees) representing the total package premium feel (e.g., between 15000 to 95000 INR depending on duration and vehicle class).`;
+ABSOLUTE MANDATORY RULES FOR PLACES AND SIGHTSEEING:
+1. You MUST use the EXACT Selected Sightseeing Places list: ${JSON.stringify(selectedPlaces)}.
+2. Every place mentioned in the weekly highlights, daily "sightseeingOrder" list, and daily "activities" MUST come from this provided list.
+3. Each of the customer's selected places should appear exactly once across the entire multi-day itinerary. Do not repeat the same attraction on different days.
+4. Arrange the sightseeing order for each day optimally by driving distance, road connectivity, starting from breakfast and staying near the last sightseeing landmark of the day.
+5. NEVER replace the customer's selected places under any circumstances.
+6. NEVER invent generic landmarks or sightseeing locations (e.g., do NOT generate "Grand City Palace", "Beautiful Scenic Overlook", "Heritage Museum", "Adventure Sports Arena", "Mystic Botanical Gardens", "Sunset View Point", "Cultural Village", "Scenic Lake", or "Historic Fort").
+
+Make sure to estimate travel distance (KM) and total driving time realistically based on the route between ${pickupLocation} and ${destination}. Suggest Breakfast, Lunch, Dinner, optimized sightseeing order, specific timestamps, activities, daily highlights, night stay locations, return journey on the final day, and three helpful travel tips. Provide an estimated cost range in INR (Indian Rupees) representing the total package premium feel.`;
 
     console.log("Sending itinerary request to Gemini API...");
     const response = await ai.models.generateContent({

@@ -29,6 +29,137 @@ const VEHICLES = [
   { id: "Bus", label: "Volvo Luxury Coach Bus (35-45 Seater)", capacity: "30-45 Pax" }
 ];
 
+const LANDMARKS_REGISTRY: { [key: string]: { name: string; spots: string[] } } = {
+  "munnar": {
+    name: "Munnar",
+    spots: ["Eravikulam National Park", "Mattupetty Dam", "Tea Museum & Gardens", "Echo Point", "Kundala Lake"]
+  },
+  "thekkady": {
+    name: "Thekkady",
+    spots: ["Periyar National Park Safari", "Periyar Lake Boating", "Spices Plantation Tour", "Elephant Junction", "Kadathanadan Martial Arts"]
+  },
+  "alleppey": {
+    name: "Alleppey",
+    spots: ["Vembanad Lake Houseboat Cruise", "Alappuzha Beach & Lighthouse", "Kuttanad Backwaters", "Pathiramanal Island"]
+  },
+  "alappuzha": {
+    name: "Alleppey",
+    spots: ["Vembanad Lake Houseboat Cruise", "Alappuzha Beach & Lighthouse", "Kuttanad Backwaters", "Pathiramanal Island"]
+  },
+  "kumarakom": {
+    name: "Kumarakom",
+    spots: ["Kumarakom Bird Sanctuary", "Vembanad Lake Sunset Cruise", "Aruvikkuzhi Waterfall"]
+  },
+  "wayanad": {
+    name: "Wayanad",
+    spots: ["Banasura Sagar Dam", "Edakkal Caves & Carvings", "Chembra Peak Trek", "Pookode Lake Boating", "Soochipara Waterfalls"]
+  },
+  "kovalam": {
+    name: "Kovalam",
+    spots: ["Lighthouse Beach", "Hawa Beach & Samudra Beach", "Halcyon Castle & Vizhinjam Marine Aquarium"]
+  },
+  "trivandrum": {
+    name: "Trivandrum",
+    spots: ["Sree Padmanabhaswamy Temple", "Napier Museum & Zoo", "Shangumugham Beach Sunset"]
+  },
+  "vagamon": {
+    name: "Vagamon",
+    spots: ["Pine Valley Forest", "Kurisumala Ashram & Hill", "Vagamon Meadows & Lake"]
+  },
+  "shimla": {
+    name: "Shimla",
+    spots: ["The Ridge & Mall Road", "Jakhoo Monkey Temple", "Kufri Adventure Park", "Christ Church Heritage"]
+  },
+  "manali": {
+    name: "Manali",
+    spots: ["Solang Valley Adventure", "Hadimba Temple", "Rohtang Pass Snow View", "Jogini Waterfall Trek", "Old Manali Cafes"]
+  },
+  "agra": {
+    name: "Agra",
+    spots: ["The Majestic Taj Mahal", "Agra Fort", "Fatehpur Sikri Royal Complex", "Mehtab Bagh Views"]
+  },
+  "jaipur": {
+    name: "Jaipur",
+    spots: ["Amer Fort", "Hawa Mahal (Palace of Winds)", "City Palace Museum", "Jantar Mantar Observatory", "Chokhi Dhani Ethnic Village"]
+  },
+  "delhi": {
+    name: "Delhi",
+    spots: ["Red Fort", "Qutub Minar", "India Gate", "Lotus Temple", "Humayun's Tomb", "Akshardham Temple"]
+  },
+  "dehradun": {
+    name: "Dehradun",
+    spots: ["Robber's Cave (Guchhupani)", "Sahastradhara Natural Sulphur Springs", "Mindrolling Buddhist Monastery"]
+  },
+  "haridwar": {
+    name: "Haridwar",
+    spots: ["Har Ki Pauri Ganga Aarti", "Mansa Devi Temple Cable Car", "Chandi Devi Temple"]
+  },
+  "rishikesh": {
+    name: "Rishikesh",
+    spots: ["Laxman Jhula & Ram Jhula", "Triveni Ghat Evening Aarti", "Beatles Ashram", "White Water River Rafting"]
+  },
+  "nainital": {
+    name: "Nainital",
+    spots: ["Naini Lake Yachting", "Naina Peak Views", "Snow View Point Cable Car", "Tiffin Top Sunset"]
+  },
+  "dharamshala": {
+    name: "Dharamshala",
+    spots: ["Dalai Lama Temple Complex", "Bhagsunag Waterfall & Temple", "McLeod Ganj Tibetan Cafe Trail", "HPCA Cricket Stadium"]
+  },
+  "mussoorie": {
+    name: "Mussoorie",
+    spots: ["Kempty Falls", "Mall Road Promenade", "Lal Tibba Scenic View", "Gun Hill Ropeway"]
+  },
+  "bangalore": {
+    name: "Bangalore",
+    spots: ["Lalbagh Botanical Garden", "Cubbon Park Walkways", "Bangalore Palace Tour", "Nandi Hills Sunrise"]
+  },
+  "bengaluru": {
+    name: "Bangalore",
+    spots: ["Lalbagh Botanical Garden", "Cubbon Park Walkways", "Bangalore Palace Tour", "Nandi Hills Sunrise"]
+  },
+  "coorg": {
+    name: "Coorg",
+    spots: ["Abbey Falls", "Raja's Seat Gardens", "Golden Temple (Namdroling)", "Dubare Elephant Camp"]
+  },
+  "mysore": {
+    name: "Mysore",
+    spots: ["Mysore Palace Illumination", "Chamundi Hill & Nandi", "Brindavan Gardens Fountain Show", "Mysore Zoo Heritage"]
+  },
+  "ooty": {
+    name: "Ooty",
+    spots: ["Botanical Gardens", "Ooty Lake Boating", "Doddabetta Peak Views", "Rose Garden Botanical Exhibits"]
+  },
+  "chikmagalur": {
+    name: "Chikmagalur",
+    spots: ["Mullayanagiri Peak (Highest in Karnataka)", "Baba Budangiri Heritage", "Hebbe Falls", "Kemmangundi Hill Resort"]
+  },
+  "pondicherry": {
+    name: "Pondicherry",
+    spots: ["Promenade Beach Walking", "Auroville Matrimandir", "French Quarter Colonial Walk", "Paradise Beach Island"]
+  },
+  "goa": {
+    name: "Goa",
+    spots: ["Calangute & Baga Beaches", "Basilica of Bom Jesus (UNESCO)", "Fort Aguada", "Dudhsagar Waterfalls Trail"]
+  },
+  "mumbai": {
+    name: "Mumbai",
+    spots: ["Gateway of India", "Marine Drive Promenade", "Elephanta Caves ferry ride", "Siddhivinayak Temple", "Juhu Beach Street Food"]
+  },
+  "pune": {
+    name: "Pune",
+    spots: ["Shaniwar Wada Palace Fort", "Aga Khan Palace Museum", "Sinhagad Fort Hill Trek"]
+  },
+  "lonavala": {
+    name: "Lonavala",
+    spots: ["Tiger's Leap Gorge", "Bhushi Dam Cascades", "Karla Caves & Ekvira Temple"]
+  },
+  "mahabaleshwar": {
+    name: "Mahabaleshwar",
+    spots: ["Arthur's Seat Viewpoint", "Mapro Garden Strawberry Tasting", "Venna Lake Boating"]
+  }
+};
+
 export default function ItineraryForm({ onSubmit, loading, onSelectPreset }: ItineraryFormProps) {
   const [formData, setFormData] = useState<ItineraryRequest>({
     pickupLocation: "",
@@ -41,14 +172,54 @@ export default function ItineraryForm({ onSubmit, loading, onSelectPreset }: Iti
     specialRequests: ""
   });
 
+  const [selectedPlaces, setSelectedPlaces] = useState<string[]>([]);
+  const [customPlaceInput, setCustomPlaceInput] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // Derive suggested landmarks based on the destination input
+  const getSuggestedSpots = () => {
+    const destString = formData.destination.toLowerCase();
+    if (!destString.trim()) return [];
+    
+    const foundSpots: string[] = [];
+    const phrases = destString.split(/[-,\+/]|\bto\b|\band\b/);
+    const matchedKeys = new Set<string>();
+
+    phrases.forEach(phrase => {
+      const trimmed = phrase.trim();
+      if (!trimmed) return;
+      
+      for (const key in LANDMARKS_REGISTRY) {
+        if (trimmed.includes(key) && !matchedKeys.has(key)) {
+          matchedKeys.add(key);
+          foundSpots.push(...LANDMARKS_REGISTRY[key].spots);
+        }
+      }
+    });
+
+    if (foundSpots.length === 0) {
+      for (const key in LANDMARKS_REGISTRY) {
+        if (destString.includes(key) && !matchedKeys.has(key)) {
+          matchedKeys.add(key);
+          foundSpots.push(...LANDMARKS_REGISTRY[key].spots);
+        }
+      }
+    }
+    return foundSpots;
+  };
+
+  const suggestedSpots = getSuggestedSpots();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === "numberOfDays" || name === "numberOfTravelers" ? parseInt(value) || 0 : value
-    }));
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [name]: name === "numberOfDays" || name === "numberOfTravelers" ? parseInt(value) || 0 : value
+      };
+      // If destination changed, we can dynamically add/update suggested places
+      return updated;
+    });
   };
 
   const handleTripTypeChange = (type: 'One Way' | 'Round Trip') => {
@@ -65,7 +236,7 @@ export default function ItineraryForm({ onSubmit, loading, onSelectPreset }: Iti
       return;
     }
     if (!formData.destination.trim()) {
-      setError(formData.tripType === "One Way" ? "Please specify a destination address or city." : "Please specify places to visit.");
+      setError(formData.tripType === "One Way" ? "Please specify a destination address or city." : "Please specify destination(s) to visit.");
       return;
     }
     if (formData.numberOfDays <= 0 || formData.numberOfDays > 15) {
@@ -76,8 +247,26 @@ export default function ItineraryForm({ onSubmit, loading, onSelectPreset }: Iti
       setError("Please specify at least 1 traveler.");
       return;
     }
+    if (selectedPlaces.length === 0) {
+      setError("Please select or add at least 1 sightseeing place to visit. Selected list is mandatory.");
+      return;
+    }
 
-    onSubmit(formData);
+    onSubmit({
+      ...formData,
+      selectedPlaces
+    });
+  };
+
+  const getPresetSpots = (destString: string) => {
+    const destLower = destString.toLowerCase();
+    const foundSpots: string[] = [];
+    for (const key in LANDMARKS_REGISTRY) {
+      if (destLower.includes(key)) {
+        foundSpots.push(...LANDMARKS_REGISTRY[key].spots);
+      }
+    }
+    return foundSpots;
   };
 
   const loadPreset = (pickup: string, dest: string, days: number, travelers: number, vehicle: string, trip: 'One Way' | 'Round Trip', request: string = "") => {
@@ -92,6 +281,11 @@ export default function ItineraryForm({ onSubmit, loading, onSelectPreset }: Iti
       specialRequests: request
     };
     setFormData(presetData);
+    
+    // Auto populate the selected places corresponding to preset destination
+    const spots = getPresetSpots(dest);
+    setSelectedPlaces(spots);
+    
     onSelectPreset(presetData);
   };
 
@@ -291,6 +485,126 @@ export default function ItineraryForm({ onSubmit, loading, onSelectPreset }: Iti
             </select>
           </div>
 
+        </div>
+
+        {/* 2.5. Selected Places Checklist / Manual Input Segment (MANDATORY) */}
+        <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+            <div>
+              <label className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                <Compass className="w-4 h-4 text-emerald-600 animate-spin-slow" />
+                Select Sightseeing Places to Visit <span className="text-rose-500 font-extrabold">*</span>
+              </label>
+              <p className="text-[11px] text-slate-500 mt-0.5">Pick matching real spots below, or type custom places. Selected list is mandatory.</p>
+            </div>
+            {suggestedSpots.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  // Select all suggested spots
+                  const uniqueList = Array.from(new Set([...selectedPlaces, ...suggestedSpots]));
+                  setSelectedPlaces(uniqueList);
+                }}
+                className="text-[10px] font-black bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors uppercase tracking-wider"
+              >
+                ✓ Select All Suggested
+              </button>
+            )}
+          </div>
+
+          {/* Preset/Suggested Places for the typed destination */}
+          {suggestedSpots.length > 0 && (
+            <div className="space-y-2">
+              <span className="text-[10px] bg-sky-50 text-sky-700 px-2 py-0.5 rounded font-black uppercase tracking-wider">Suggested from {formData.destination} Registry</span>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {suggestedSpots.map((spot, i) => {
+                  const isSelected = selectedPlaces.includes(spot);
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedPlaces(selectedPlaces.filter(s => s !== spot));
+                        } else {
+                          setSelectedPlaces([...selectedPlaces, spot]);
+                        }
+                      }}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-all flex items-center gap-1 cursor-pointer ${
+                        isSelected
+                          ? "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-500 shadow-sm"
+                          : "bg-white hover:bg-slate-100 text-slate-700 border-slate-200"
+                      }`}
+                    >
+                      {isSelected ? "✓ " : "+ "}
+                      {spot}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Selected Places display checklist */}
+          <div className="space-y-2.5">
+            <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded font-black uppercase tracking-wider">Active Selected Places ({selectedPlaces.length})</span>
+            {selectedPlaces.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 font-sans">
+                {selectedPlaces.map((spot, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-2.5 bg-white rounded-xl border border-slate-200 shadow-sm">
+                    <span className="text-xs font-medium text-slate-800 break-all">{spot}</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPlaces(selectedPlaces.filter(s => s !== spot))}
+                      className="text-slate-400 hover:text-rose-600 p-1 rounded-lg hover:bg-rose-50 transition-all cursor-pointer font-bold text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6 border border-dashed border-slate-200 bg-white rounded-2xl text-xs text-slate-400 font-medium">
+                No spots selected yet. Try typing a destination (like 'Munnar' or 'Coorg') to view options, or add custom places below.
+              </div>
+            )}
+          </div>
+
+          {/* Custom place insertion field */}
+          <div className="space-y-1.5 pt-2 border-t border-slate-200 flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Type any other real place name (e.g. Abbey Falls) and click Add"
+              value={customPlaceInput}
+              onChange={(e) => setCustomPlaceInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (customPlaceInput.trim()) {
+                    if (!selectedPlaces.includes(customPlaceInput.trim())) {
+                      setSelectedPlaces([...selectedPlaces, customPlaceInput.trim()]);
+                    }
+                    setCustomPlaceInput("");
+                  }
+                }
+              }}
+              className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-slate-800 text-xs font-medium"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (customPlaceInput.trim()) {
+                  if (!selectedPlaces.includes(customPlaceInput.trim())) {
+                    setSelectedPlaces([...selectedPlaces, customPlaceInput.trim()]);
+                  }
+                  setCustomPlaceInput("");
+                }
+              }}
+              className="px-4 py-2 bg-slate-850 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition-all h-full cursor-pointer shrink-0"
+            >
+              + Add Place
+            </button>
+          </div>
         </div>
 
         {/* 3. Special Requests */}
