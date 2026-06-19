@@ -43,6 +43,137 @@ const DESTINATION_IMAGES: { [key: string]: string } = {
   "delhi": "https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&q=80&w=800"
 };
 
+const LANDMARKS_REGISTRY: { [key: string]: { name: string; spots: string[] } } = {
+  "munnar": {
+    name: "Munnar",
+    spots: ["Eravikulam National Park", "Mattupetty Dam", "Tea Museum & Gardens", "Echo Point", "Kundala Lake"]
+  },
+  "thekkady": {
+    name: "Thekkady",
+    spots: ["Periyar National Park Safari", "Periyar Lake Boating", "Spices Plantation Tour", "Elephant Junction", "Kadathanadan Martial Arts"]
+  },
+  "alleppey": {
+    name: "Alleppey",
+    spots: ["Vembanad Lake Houseboat Cruise", "Alappuzha Beach & Lighthouse", "Kuttanad Backwaters", "Pathiramanal Island"]
+  },
+  "alappuzha": {
+    name: "Alleppey",
+    spots: ["Vembanad Lake Houseboat Cruise", "Alappuzha Beach & Lighthouse", "Kuttanad Backwaters", "Pathiramanal Island"]
+  },
+  "kumarakom": {
+    name: "Kumarakom",
+    spots: ["Kumarakom Bird Sanctuary", "Vembanad Lake Sunset Cruise", "Aruvikkuzhi Waterfall"]
+  },
+  "wayanad": {
+    name: "Wayanad",
+    spots: ["Banasura Sagar Dam", "Edakkal Caves & Carvings", "Chembra Peak Trek", "Pookode Lake Boating", "Soochipara Waterfalls"]
+  },
+  "kovalam": {
+    name: "Kovalam",
+    spots: ["Lighthouse Beach", "Hawa Beach & Samudra Beach", "Halcyon Castle & Vizhinjam Marine Aquarium"]
+  },
+  "trivandrum": {
+    name: "Trivandrum",
+    spots: ["Sree Padmanabhaswamy Temple", "Napier Museum & Zoo", "Shangumugham Beach Sunset"]
+  },
+  "vagamon": {
+    name: "Vagamon",
+    spots: ["Pine Valley Forest", "Kurisumala Ashram & Hill", "Vagamon Meadows & Lake"]
+  },
+  "shimla": {
+    name: "Shimla",
+    spots: ["The Ridge & Mall Road", "Jakhoo Monkey Temple", "Kufri Adventure Park", "Christ Church Heritage"]
+  },
+  "manali": {
+    name: "Manali",
+    spots: ["Solang Valley Adventure", "Hadimba Temple", "Rohtang Pass Snow View", "Jogini Waterfall Trek", "Old Manali Cafes"]
+  },
+  "agra": {
+    name: "Agra",
+    spots: ["The Majestic Taj Mahal", "Agra Fort", "Fatehpur Sikri Royal Complex", "Mehtab Bagh Views"]
+  },
+  "jaipur": {
+    name: "Jaipur",
+    spots: ["Amer Fort", "Hawa Mahal (Palace of Winds)", "City Palace Museum", "Jantar Mantar Observatory", "Chokhi Dhani Ethnic Village"]
+  },
+  "delhi": {
+    name: "Delhi",
+    spots: ["Red Fort", "Qutub Minar", "India Gate", "Lotus Temple", "Humayun's Tomb", "Akshardham Temple"]
+  },
+  "dehradun": {
+    name: "Dehradun",
+    spots: ["Robber's Cave (Guchhupani)", "Sahastradhara Natural Sulphur Springs", "Mindrolling Buddhist Monastery"]
+  },
+  "haridwar": {
+    name: "Haridwar",
+    spots: ["Har Ki Pauri Ganga Aarti", "Mansa Devi Temple Cable Car", "Chandi Devi Temple"]
+  },
+  "rishikesh": {
+    name: "Rishikesh",
+    spots: ["Laxman Jhula & Ram Jhula", "Triveni Ghat Evening Aarti", "Beatles Ashram", "White Water River Rafting"]
+  },
+  "nainital": {
+    name: "Nainital",
+    spots: ["Naini Lake Yachting", "Naina Peak Views", "Snow View Point Cable Car", "Tiffin Top Sunset"]
+  },
+  "dharamshala": {
+    name: "Dharamshala",
+    spots: ["Dalai Lama Temple Complex", "Bhagsunag Waterfall & Temple", "McLeod Ganj Tibetan Cafe Trail", "HPCA Cricket Stadium"]
+  },
+  "mussoorie": {
+    name: "Mussoorie",
+    spots: ["Kempty Falls", "Mall Road Promenade", "Lal Tibba Scenic View", "Gun Hill Ropeway"]
+  },
+  "bangalore": {
+    name: "Bangalore",
+    spots: ["Lalbagh Botanical Garden", "Cubbon Park Walkways", "Bangalore Palace Tour", "Nandi Hills Sunrise"]
+  },
+  "bengaluru": {
+    name: "Bangalore",
+    spots: ["Lalbagh Botanical Garden", "Cubbon Park Walkways", "Bangalore Palace Tour", "Nandi Hills Sunrise"]
+  },
+  "coorg": {
+    name: "Coorg",
+    spots: ["Abbey Falls", "Raja's Seat Gardens", "Golden Temple (Namdroling)", "Dubare Elephant Camp"]
+  },
+  "mysore": {
+    name: "Mysore",
+    spots: ["Mysore Palace Illumination", "Chamundi Hill & Nandi", "Brindavan Gardens Fountain Show", "Mysore Zoo Heritage"]
+  },
+  "ooty": {
+    name: "Ooty",
+    spots: ["Botanical Gardens", "Ooty Lake Boating", "Doddabetta Peak Views", "Rose Garden Botanical Exhibits"]
+  },
+  "chikmagalur": {
+    name: "Chikmagalur",
+    spots: ["Mullayanagiri Peak (Highest in Karnataka)", "Baba Budangiri Heritage", "Hebbe Falls", "Kemmangundi Hill Resort"]
+  },
+  "pondicherry": {
+    name: "Pondicherry",
+    spots: ["Promenade Beach Walking", "Auroville Matrimandir", "French Quarter Colonial Walk", "Paradise Beach Island"]
+  },
+  "goa": {
+    name: "Goa",
+    spots: ["Calangute & Baga Beaches", "Basilica of Bom Jesus (UNESCO)", "Fort Aguada", "Dudhsagar Waterfalls Trail"]
+  },
+  "mumbai": {
+    name: "Mumbai",
+    spots: ["Gateway of India", "Marine Drive Promenade", "Elephanta Caves ferry ride", "Siddhivinayak Temple", "Juhu Beach Street Food"]
+  },
+  "pune": {
+    name: "Pune",
+    spots: ["Shaniwar Wada Palace Fort", "Aga Khan Palace Museum", "Sinhagad Fort Hill Trek"]
+  },
+  "lonavala": {
+    name: "Lonavala",
+    spots: ["Tiger's Leap Gorge", "Bhushi Dam Cascades", "Karla Caves & Ekvira Temple"]
+  },
+  "mahabaleshwar": {
+    name: "Mahabaleshwar",
+    spots: ["Arthur's Seat Viewpoint", "Mapro Garden Strawberry Tasting", "Venna Lake Boating"]
+  }
+};
+
 export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps) {
   const [expandedDay, setExpandedDay] = useState<number | null>(1);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -50,6 +181,35 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
   const [isPrinting, setIsPrinting] = useState(false);
   const [whatsappPhone, setWhatsappPhone] = useState("");
   const [whatsappSent, setWhatsappSent] = useState(false);
+
+  const getRouteDestinations = () => {
+    const destString = itinerary.destination.toLowerCase();
+    const found: { name: string; spots: string[] }[] = [];
+    const phrases = destString.split(/[-,\+/]|\bto\b|\band\b/);
+    const matchedKeys = new Set<string>();
+
+    phrases.forEach(phrase => {
+      const trimmed = phrase.trim();
+      if (!trimmed) return;
+      
+      for (const key in LANDMARKS_REGISTRY) {
+        if (trimmed.includes(key) && !matchedKeys.has(key)) {
+          matchedKeys.add(key);
+          found.push(LANDMARKS_REGISTRY[key]);
+        }
+      }
+    });
+
+    if (found.length === 0) {
+      for (const key in LANDMARKS_REGISTRY) {
+        if (destString.includes(key) && !matchedKeys.has(key)) {
+          matchedKeys.add(key);
+          found.push(LANDMARKS_REGISTRY[key]);
+        }
+      }
+    }
+    return found;
+  };
 
   const getWhatsAppMessage = () => {
     let message = `*🌟 imveloTripsIndia Custom Itinerary 🌟*\n\n`;
@@ -64,8 +224,10 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
     message += `*DAILY BREAKDOWN:*\n`;
     itinerary.days.forEach((day: any) => {
       message += `📅 *Day ${day.dayNumber} - ${day.title}*\n`;
-      message += `• Morning: ${day.morningActivity.activityName}\n`;
-      message += `• Afternoon: ${day.afternoonActivity.activityName}\n`;
+      const firstAct = day.activities?.[0]?.title || day.sightseeingOrder?.[0] || "Exploring Local Spot";
+      const secondAct = day.activities?.[1]?.title || day.sightseeingOrder?.[1] || "Sightseeing Excursion";
+      message += `• Activity 1: ${firstAct}\n`;
+      message += `• Activity 2: ${secondAct}\n`;
       message += `• Night Stay: ${day.nightStay}\n\n`;
     });
     
@@ -546,6 +708,37 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
 
             </div>
           </div>
+
+          {/* Key Sightseeing & Attractions Checklist */}
+          {getRouteDestinations().length > 0 && (
+            <div className="bg-white border border-slate-200/80 rounded-3xl p-5 sm:p-6 space-y-4 shadow-sm">
+                <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5">
+                  <Compass className="w-4 h-4 text-emerald-500 animate-spin-slow" />
+                  Key Sightseeing Attractions
+                </h4>
+                <p className="text-[11px] text-slate-500 leading-normal font-medium">
+                  curated list of top-rated highlights &amp; landmarks you will visit in these locations:
+                </p>
+                
+                <div className="space-y-4.5">
+                  {getRouteDestinations().map((city, cIdx) => (
+                    <div key={cIdx} className="space-y-2 border-l-2 border-sky-200 pl-3.5">
+                      <span className="text-xs font-black text-slate-800 uppercase tracking-wider block flex items-center gap-1">
+                        <span>📍</span> {city.name}
+                      </span>
+                      <ul className="grid grid-cols-1 gap-1.5 text-[11px] text-slate-600 font-semibold font-sans">
+                        {city.spots.map((spot, sIdx) => (
+                          <li key={sIdx} className="flex items-center gap-2">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                            <span>{spot}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+            </div>
+          )}
 
           {/* Pricing estimation widget */}
           {itinerary.estimatedCostRange && (

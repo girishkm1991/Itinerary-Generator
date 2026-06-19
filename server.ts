@@ -11,103 +11,169 @@ const PORT = 3000;
 
 app.use(express.json());
 
-// Distance dictionary between popular pickup Hubs and tourist Destinations in India (in KM - one way)
-const DISTANCE_REGISTRY: { [key: string]: { [key: string]: number } } = {
-  "delhi": {
-    "shimla": 345,
-    "manali": 535,
-    "agra": 235,
-    "jaipur": 270,
-    "dehradun": 250,
-    "haridwar": 220,
-    "rishikesh": 240,
-    "nainital": 300,
-    "dharamshala": 475,
-  },
-  "cochin": {
-    "munnar": 125,
-    "thekkady": 160,
-    "alleppey": 85,
-    "kumarakom": 80,
-    "wayanad": 260,
-    "kovalam": 220,
-    "trivandrum": 205,
-    "vagamon": 105,
-  },
-  "kochi": {
-    "munnar": 125,
-    "thekkady": 160,
-    "alleppey": 85,
-    "kumarakom": 80,
-    "wayanad": 260,
-    "kovalam": 220,
-    "trivandrum": 205,
-    "vagamon": 105,
-  },
-  "bangalore": {
-    "coorg": 255,
-    "mysore": 145,
-    "ooty": 270,
-    "wayanad": 280,
-    "chikmagalur": 245,
-    "kabini": 210,
-    "nandi hills": 60,
-    "pondicherry": 310,
-    "goa": 560,
-  },
-  "mumbai": {
-    "lonavala": 85,
-    "mahabaleshwar": 260,
-    "goa": 590,
-    "pune": 150,
-    "shirdi": 240,
-    "alibaug": 100,
-  },
-  "chennai": {
-    "pondicherry": 150,
-    "ooty": 550,
-    "tirupati": 135,
-    "yelagiri": 230,
-    "kodaikanal": 530,
-  }
+// Extensive Coordinate Registry of all major hubs & destinations (for physical Haversine and routing calculation)
+const PLACE_COORDINATES: { [key: string]: { lat: number; lng: number; name: string } } = {
+  "cochin": { lat: 9.9312, lng: 76.2673, name: "Kochi" },
+  "kochi": { lat: 9.9312, lng: 76.2673, name: "Kochi" },
+  "munnar": { lat: 10.0889, lng: 77.0595, name: "Munnar" },
+  "thekkady": { lat: 9.6031, lng: 77.1615, name: "Thekkady" },
+  "alleppey": { lat: 9.4981, lng: 76.3388, name: "Alleppey" },
+  "alappuzha": { lat: 9.4981, lng: 76.3388, name: "Alleppey" },
+  "kumarakom": { lat: 9.5916, lng: 76.4222, name: "Kumarakom" },
+  "wayanad": { lat: 11.6854, lng: 76.1320, name: "Wayanad" },
+  "kovalam": { lat: 8.4004, lng: 76.9784, name: "Kovalam" },
+  "trivandrum": { lat: 8.5241, lng: 76.9366, name: "Trivandrum" },
+  "vagamon": { lat: 9.6872, lng: 76.9038, name: "Vagamon" },
+  "delhi": { lat: 28.6139, lng: 77.2090, name: "Delhi" },
+  "shimla": { lat: 31.1048, lng: 77.1734, name: "Shimla" },
+  "manali": { lat: 32.2396, lng: 77.1887, name: "Manali" },
+  "agra": { lat: 27.1767, lng: 78.0081, name: "Agra" },
+  "jaipur": { lat: 26.9124, lng: 75.7873, name: "Jaipur" },
+  "dehradun": { lat: 30.3165, lng: 78.0322, name: "Dehradun" },
+  "haridwar": { lat: 29.9457, lng: 78.1642, name: "Haridwar" },
+  "rishikesh": { lat: 30.0869, lng: 78.2676, name: "Rishikesh" },
+  "nainital": { lat: 29.3803, lng: 79.4630, name: "Nainital" },
+  "dharamshala": { lat: 32.2190, lng: 76.3234, name: "Dharamshala" },
+  "mussoorie": { lat: 30.4598, lng: 78.0772, name: "Mussoorie" },
+  "bangalore": { lat: 12.9716, lng: 77.5946, name: "Bangalore" },
+  "bengaluru": { lat: 12.9716, lng: 77.5946, name: "Bangalore" },
+  "coorg": { lat: 12.4244, lng: 75.7382, name: "Coorg" },
+  "mysore": { lat: 12.2958, lng: 76.6394, name: "Mysore" },
+  "ooty": { lat: 11.4102, lng: 76.6950, name: "Ooty" },
+  "chikmagalur": { lat: 13.3161, lng: 75.7720, name: "Chikmagalur" },
+  "kabini": { lat: 11.9167, lng: 76.2500, name: "Kabini" },
+  "nandi hills": { lat: 13.3702, lng: 77.6835, name: "Nandi Hills" },
+  "pondicherry": { lat: 11.9416, lng: 79.8083, name: "Pondicherry" },
+  "goa": { lat: 15.4909, lng: 73.8278, name: "Goa" },
+  "mumbai": { lat: 19.0760, lng: 72.8777, name: "Mumbai" },
+  "lonavala": { lat: 18.7543, lng: 73.4050, name: "Lonavala" },
+  "mahabaleshwar": { lat: 17.9307, lng: 73.6477, name: "Mahabaleshwar" },
+  "pune": { lat: 18.5204, lng: 73.8567, name: "Pune" },
+  "shirdi": { lat: 19.7661, lng: 74.4762, name: "Shirdi" },
+  "alibaug": { lat: 18.6584, lng: 72.8777, name: "Alibaug" },
+  "chennai": { lat: 13.0827, lng: 80.2707, name: "Chennai" },
+  "tirupati": { lat: 13.6288, lng: 79.4192, name: "Tirupati" },
+  "yelagiri": { lat: 12.5781, lng: 78.6360, name: "Yelagiri" },
+  "kodaikanal": { lat: 10.2381, lng: 77.4892, name: "Kodaikanal" }
 };
 
-function findExactBaseDistance(pickup: string, dest: string): number {
-  const pLower = pickup.toLowerCase();
-  const dLower = dest.toLowerCase();
+// Exact driving roadmap segment distance overwrites (in KM) matching standard Indian routes
+const SEGMENT_OVERWRITES: { [key: string]: { [key: string]: number } } = {
+  "cochin": { "munnar": 125, "thekkady": 160, "alleppey": 85, "kumarakom": 80, "wayanad": 260, "kovalam": 220, "trivandrum": 205, "vagamon": 105 },
+  "kochi": { "munnar": 125, "thekkady": 160, "alleppey": 85, "kumarakom": 80, "wayanad": 260, "kovalam": 220, "trivandrum": 205, "vagamon": 105 },
+  "munnar": { "thekkady": 110, "alleppey": 170, "kumarakom": 150 },
+  "thekkady": { "alleppey": 140, "kumarakom": 120 },
+  "alleppey": { "kumarakom": 35, "kovalam": 160, "trivandrum": 150 },
+  "kumarakom": { "kovalam": 170, "trivandrum": 160 },
+  "kovalam": { "trivandrum": 15 },
+  "bangalore": { "mysore": 145, "coorg": 255, "ooty": 270, "wayanad": 280, "chikmagalur": 245, "kabini": 210, "pondicherry": 310, "goa": 560 },
+  "mysore": { "coorg": 110, "ooty": 125, "wayanad": 130, "chikmagalur": 180, "kabini": 60 },
+  "coorg": { "ooty": 225, "wayanad": 120, "chikmagalur": 140 },
+  "ooty": { "wayanad": 110, "kodaikanal": 250 },
+  "delhi": { "agra": 235, "jaipur": 270, "shimla": 345, "manali": 535, "dehradun": 250, "haridwar": 220, "rishikesh": 240, "nainital": 300, "dharamshala": 475 },
+  "agra": { "jaipur": 240 },
+  "shimla": { "manali": 250 },
+  "manali": { "dharamshala": 220 },
+  "haridwar": { "rishikesh": 25, "dehradun": 50 },
+  "rishikesh": { "dehradun": 45 },
+  "dehradun": { "mussoorie": 35 },
+  "mumbai": { "lonavala": 85, "mahabaleshwar": 260, "goa": 590, "pune": 150, "shirdi": 240, "alibaug": 100 },
+  "lonavala": { "pune": 65, "mahabaleshwar": 180 },
+  "pune": { "mahabaleshwar": 120, "shirdi": 185 },
+  "chennai": { "pondicherry": 150, "tirupati": 135, "yelagiri": 230, "kodaikanal": 530, "ooty": 550 }
+};
 
-  for (const pKey in DISTANCE_REGISTRY) {
-    if (pLower.includes(pKey)) {
-      for (const dKey in DISTANCE_REGISTRY[pKey]) {
-        if (dLower.includes(dKey)) {
-          return DISTANCE_REGISTRY[pKey][dKey];
-        }
+// Parse compound strings like "Munnar - Thekkady - Alleppey" or comma-separated lists of cities
+function parseRouteCities(input: string): string[] {
+  const normalized = input.toLowerCase();
+  const splitted = normalized.split(/[-,\+/]|\bto\b|\band\b/);
+  const found: string[] = [];
+
+  splitted.forEach(part => {
+    const trimmed = part.trim();
+    if (!trimmed) return;
+
+    let matchedKey: string | null = null;
+    for (const key in PLACE_COORDINATES) {
+      if (trimmed === key || trimmed.includes(key)) {
+        matchedKey = key;
+        break;
       }
     }
-  }
+    found.push(matchedKey || trimmed);
+  });
 
-  // Check reciprocal (e.g. if user flipped pickup and destination keyword mapping)
-  for (const pKey in DISTANCE_REGISTRY) {
-    if (dLower.includes(pKey)) {
-      for (const dKey in DISTANCE_REGISTRY[pKey]) {
-        if (pLower.includes(dKey)) {
-          return DISTANCE_REGISTRY[pKey][dKey];
-        }
-      }
-    }
-  }
-
-  return 0; // Not found
+  return found.length > 0 ? found : [normalized.trim()];
 }
 
-function getDeterministicHashDistance(pickup: string, dest: string): number {
-  const combined = (pickup + dest).toLowerCase();
+// Compute driving segment distance using actual values or precise Haversine with circuity correction
+function getSegmentKM(cityA: string, cityB: string): number {
+  const a = cityA.toLowerCase().trim();
+  const b = cityB.toLowerCase().trim();
+
+  if (a === b) return 0;
+
+  // Check exact segment overwrites in our static table
+  if (SEGMENT_OVERWRITES[a] && SEGMENT_OVERWRITES[a][b] !== undefined) {
+    return SEGMENT_OVERWRITES[a][b];
+  }
+  if (SEGMENT_OVERWRITES[b] && SEGMENT_OVERWRITES[b][a] !== undefined) {
+    return SEGMENT_OVERWRITES[b][a];
+  }
+
+  // Fallback: Haversine distance with circuity factor
+  const coordA = PLACE_COORDINATES[a];
+  const coordB = PLACE_COORDINATES[b];
+
+  if (coordA && coordB) {
+    const R = 6371; // Earth's radius in km
+    const dLat = (coordB.lat - coordA.lat) * Math.PI / 180;
+    const dLng = (coordB.lng - coordA.lng) * Math.PI / 180;
+    const lat1 = coordA.lat * Math.PI / 180;
+    const lat2 = coordB.lat * Math.PI / 180;
+
+    const arc = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.sin(dLng / 2) * Math.sin(dLng / 2) * Math.cos(lat1) * Math.cos(lat2);
+    const c = 2 * Math.atan2(Math.sqrt(arc), Math.sqrt(1 - arc));
+    const rawDistance = R * c;
+
+    // Circuity factor for mountain range road curves: averages 1.35x line of sight in India
+    return Math.round(rawDistance * 1.35);
+  }
+
+  // Ultimate hash fallback if totally unrecognized, but very consistent
+  const combined = (a + b).toLowerCase();
   let hash = 0;
   for (let i = 0; i < combined.length; i++) {
     hash = combined.charCodeAt(i) + ((hash << 5) - hash);
   }
-  const positiveHash = Math.abs(hash);
-  return 120 + (positiveHash % 301); // 120km to 420km
+  return 120 + (Math.abs(hash) % 201); // 120km to 320km
+}
+
+// Compute total multi-stop route Kilometer with local sightseeing factored in for Round Trips
+function computeTotalKM(pickup: string, destination: string, tripType: string, daysCount: number): number {
+  const pickupTokens = parseRouteCities(pickup);
+  const pickupToken = pickupTokens[0] || pickup.toLowerCase().trim();
+  const destTokens = parseRouteCities(destination);
+
+  let totalKm = 0;
+  let currentLoc = pickupToken;
+
+  // Segment chain: Pickup -> Dest 1 -> Dest 2 -> ... -> Dest N
+  destTokens.forEach(dest => {
+    totalKm += getSegmentKM(currentLoc, dest);
+    currentLoc = dest;
+  });
+
+  if (tripType === "Round Trip") {
+    // Round trip goes back to the initial pickup location
+    totalKm += getSegmentKM(currentLoc, pickupToken);
+    
+    // Add local sightseeing mileage: standard covers ~50 km per day of local sight tours
+    totalKm += (daysCount * 50);
+  }
+
+  return Math.max(40, totalKm);
 }
 
 // Initialize GoogleGenAI SDK with useragent header as required by the system skill
@@ -149,22 +215,9 @@ function generateMockItinerary(reqBody: any): any {
   const travelers = numberOfTravelers || 2;
   const vehicle = vehicleType || "Sedan";
 
-  // Calculate high-fidelity distance matrix parameters
-  let baseDistance = findExactBaseDistance(pickupLocation, destination);
-  if (baseDistance === 0) {
-    baseDistance = getDeterministicHashDistance(pickupLocation, destination);
-  }
-
-  let distance = baseDistance;
-  let drivingTimeStr = "";
-
-  if (tripType === "Round Trip") {
-    distance = (2 * baseDistance) + (daysCount * 60);
-    drivingTimeStr = `${(distance / 50).toFixed(1)} hours (includes local sightseeing)`;
-  } else {
-    distance = baseDistance;
-    drivingTimeStr = `${(distance / 50).toFixed(1)} hours`;
-  }
+  // Calculate high-fidelity distance parameters using our path computer
+  const distance = computeTotalKM(pickupLocation, destination, tripType, daysCount);
+  const drivingTimeStr = `${(distance / 50).toFixed(1)} hours${tripType === "Round Trip" ? " (includes local sightseeing)" : ""}`;
 
   // Realistic billing based on premium cab mileage rates for different classes of vehicle
   const rates: { [key: string]: number } = {
@@ -410,20 +463,8 @@ Make sure to estimate travel distance (KM) and total driving time realistically 
     const parsedItinerary = JSON.parse(textOutput.trim());
     
     // Normalize and calibrate the response distance, driving time, and pricing to match our exact Indian cab math
-    let baseDist = findExactBaseDistance(pickupLocation, destination);
-    if (baseDist === 0) {
-      baseDist = getDeterministicHashDistance(pickupLocation, destination);
-    }
-
-    let finalDist = baseDist;
-    let computedTimeStr = "";
-    if (tripType === "Round Trip") {
-      finalDist = (2 * baseDist) + (parseInt(numberOfDays) || 3) * 60;
-      computedTimeStr = `${(finalDist / 50).toFixed(1)} hours (includes local sightseeing)`;
-    } else {
-      finalDist = baseDist;
-      computedTimeStr = `${(finalDist / 50).toFixed(1)} hours`;
-    }
+    const finalDist = computeTotalKM(pickupLocation, destination, tripType, parseInt(numberOfDays) || 3);
+    const computedTimeStr = `${(finalDist / 50).toFixed(1)} hours${tripType === "Round Trip" ? " (includes local sightseeing)" : ""}`;
 
     parsedItinerary.estimatedDistanceKm = `${finalDist} km`;
     parsedItinerary.estimatedDrivingTime = computedTimeStr;
