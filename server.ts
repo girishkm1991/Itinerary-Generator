@@ -381,11 +381,46 @@ function generateMockItinerary(reqBody: any): any {
     }
   }
 
-  // Distribute spots intelligently across active days count: each place exactly once
+  // Distribute spots intelligently across active days: cluster by city to avoid back-and-forth travel
+  const getSpotCity = (spotName: string): string => {
+    const sLower = spotName.toLowerCase().trim();
+    for (const key in LANDMARKS_REGISTRY) {
+      if (LANDMARKS_REGISTRY[key].spots.some(rs => {
+        const rsLower = rs.toLowerCase();
+        return rsLower === sLower || sLower.includes(rsLower) || rsLower.includes(sLower);
+      })) {
+        return LANDMARKS_REGISTRY[key].name;
+      }
+    }
+    for (const key in LANDMARKS_REGISTRY) {
+      if (sLower.includes(key)) {
+        return LANDMARKS_REGISTRY[key].name;
+      }
+    }
+    return "Other";
+  };
+
+  const cityGroups: { [city: string]: string[] } = {};
+  const cityOrder: string[] = [];
+  spotsToUse.forEach(spot => {
+    const city = getSpotCity(spot);
+    if (!cityGroups[city]) {
+      cityGroups[city] = [];
+      cityOrder.push(city);
+    }
+    cityGroups[city].push(spot);
+  });
+
+  const sequentialSpots: string[] = [];
+  cityOrder.forEach(city => {
+    sequentialSpots.push(...cityGroups[city]);
+  });
+
   const daysSpots: string[][] = Array.from({ length: daysCount }, () => []);
-  spotsToUse.forEach((spot, index) => {
-    const dayIndex = index % daysCount;
-    daysSpots[dayIndex].push(spot);
+  const spotsPerDay = Math.ceil(sequentialSpots.length / daysCount);
+  sequentialSpots.forEach((spot, idx) => {
+    const dayIdx = Math.min(daysCount - 1, Math.floor(idx / spotsPerDay));
+    daysSpots[dayIdx].push(spot);
   });
 
   const mockDays = [];
@@ -525,6 +560,7 @@ ABSOLUTE MANDATORY RULES FOR PLACES AND SIGHTSEEING:
 4. Arrange the sightseeing order for each day optimally by driving distance, road connectivity, starting from breakfast and staying near the last sightseeing landmark of the day.
 5. NEVER replace the customer's selected places under any circumstances.
 6. NEVER invent generic landmarks or sightseeing locations (e.g., do NOT generate "Grand City Palace", "Beautiful Scenic Overlook", "Heritage Museum", "Adventure Sports Arena", "Mystic Botanical Gardens", "Sunset View Point", "Cultural Village", "Scenic Lake", or "Historic Fort").
+7. GEOGRAPHICAL GROUPING RULE: You MUST cluster the selected places by city/region/sub-area. For example, if some selected places are in Munnar and others are in Thekkady, make sure Munnar places are scheduled together on one day (e.g. Day 1), and Thekkady places are scheduled together on a different day (e.g. Day 2). DO NOT mix places from different remote cities/areas on the same day. Each day should be dedicated to a single main city/region.
 
 Make sure to estimate travel distance (KM) and total driving time realistically based on the route between ${pickupLocation} and ${destination}. Suggest Breakfast, Lunch, Dinner, optimized sightseeing order, specific timestamps, activities, daily highlights, night stay locations, return journey on the final day, and three helpful travel tips. Provide an estimated cost range in INR (Indian Rupees) representing the total package premium feel.`;
 
