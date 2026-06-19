@@ -1,4 +1,4 @@
-import React, { useState, FormEvent } from "react";
+import React, { useState, FormEvent, useMemo } from "react";
 import { 
   Calendar, 
   MapPin, 
@@ -211,101 +211,176 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
     return found;
   };
 
-  const getDayAttractions = (day: any) => {
-    const results: { spot: string; scheduledTime: string; activityTitle: string; description: string; location: string }[] = [];
-    const matchedSpotsFromRegistry = new Set<string>();
+  const attractionsByDay = useMemo(() => {
+    const dayMap: { [key: number]: { spot: string; scheduledTime: string; activityTitle: string; description: string; location: string }[] } = {};
+    const assignedSpots = new Set<string>();
 
-    // 1. Gather all day's text for pattern matching
-    const textToSearch = [
-      day.title,
-      day.nightStay,
-      day.dailyHighlight,
-      ...(day.sightseeingOrder || []),
-      ...(day.highlights || []),
-      ...(day.activities ? day.activities.map((a: any) => `${a.title} ${a.description} ${a.location}`) : [])
-    ].join(" ").toLowerCase();
+    if (!itinerary || !itinerary.days) return dayMap;
 
-    // 2. Scan LANDMARKS_REGISTRY
-    for (const cityKey in LANDMARKS_REGISTRY) {
-      if (!textToSearch.includes(cityKey)) continue; // Optimisation: only check matching cities
+    // 1. Identify which cities in LANDMARKS_REGISTRY are relevant to this entire trip
+    const tripDestString = (itinerary.destination + " " + itinerary.pickupLocation).toLowerCase();
+    const tripCities: string[] = [];
+    for (const key in LANDMARKS_REGISTRY) {
+      if (tripDestString.includes(key)) {
+        tripCities.push(key);
+      }
+    }
 
-      const registry = LANDMARKS_REGISTRY[cityKey];
-      registry.spots.forEach(spot => {
-        const spotLower = spot.toLowerCase();
-        const words = spotLower.split(" ");
-        const significantWords = words.filter(w => w.length > 3 && w !== "lake" && w !== "park" && w !== "beach" && w !== "hills" && w !== "falls" && w !== "temple" && w !== "gardens" && w !== "museum" && (w.length > 4 || w === "tea" || w === "dam" || w === "gap" || w === "tahr"));
-        
-        let isMentioned = textToSearch.includes(spotLower) || significantWords.some(word => textToSearch.includes(word));
-        
-        if (isMentioned) {
-          // Find if there's an existing activity matching it
-          let scheduledTime = "";
-          let activityTitle = "";
-          let description = "";
-          let location = registry.name;
+    // 2. Identify the primary city for each day
+    const dayPrimaryCities: { [dayNum: number]: string } = {};
+    itinerary.days.forEach((day: any) => {
+      const dayText = (day.title + " " + day.nightStay).toLowerCase();
+      let bestCity = "";
+      // Look for a match from tripCities first
+      for (const city of tripCities) {
+        if (dayText.includes(city)) {
+          bestCity = city;
+          break;
+        }
+      }
+      // Fallback: check any city in LANDMARKS_REGISTRY
+      if (!bestCity) {
+        for (const key in LANDMARKS_REGISTRY) {
+          if (dayText.includes(key)) {
+            bestCity = key;
+            break;
+          }
+        }
+      }
+      // Double fallback: if still not found, check activities
+      if (!bestCity && day.activities) {
+        const actText = day.activities.map((a: any) => `${a.title} ${a.description} ${a.location}`).join(" ").toLowerCase();
+        for (const key in LANDMARKS_REGISTRY) {
+          if (actText.includes(key)) {
+            bestCity = key;
+            break;
+          }
+        }
+      }
+      dayPrimaryCities[day.dayNumber] = bestCity;
+    });
 
-          if (day.activities) {
-            for (const act of day.activities) {
-              const actTitleLower = act.title.toLowerCase();
-              const actDescLower = act.description.toLowerCase();
-              if (actTitleLower.includes(spotLower) || actDescLower.includes(spotLower) || significantWords.some(word => actTitleLower.includes(word) || actDescLower.includes(word))) {
-                scheduledTime = act.time;
-                activityTitle = act.title;
-                description = act.description;
-                location = act.location || registry.name;
-                break;
+    // 3. Step 1: Find and assign spots that are EXPLICITLY mentioned in each day's text
+    itinerary.days.forEach((day: any) => {
+      dayMap[day.dayNumber] = [];
+      const dayText = [
+        day.title,
+        day.nightStay,
+        day.dailyHighlight,
+        ...(day.sightseeingOrder || []),
+        ...(day.highlights || []),
+        ...(day.activities ? day.activities.map((a: any) => `${a.title} ${a.description} ${a.location}`) : [])
+      ].join(" ").toLowerCase();
+
+      // Look at spots of all relevant registry cities
+      for (const cityKey in LANDMARKS_REGISTRY) {
+        const registry = LANDMARKS_REGISTRY[cityKey];
+        registry.spots.forEach(spot => {
+          if (assignedSpots.has(spot)) return; // already assigned to an earlier day
+
+          const spotLower = spot.toLowerCase();
+          const words = spotLower.split(" ");
+          const significantWords = words.filter(w => w.length > 3 && w !== "lake" && w !== "park" && w !== "beach" && w !== "hills" && w !== "falls" && w !== "temple" && w !== "gardens" && w !== "museum" && (w.length > 4 || w === "tea" || w === "dam" || w === "gap" || w === "tahr"));
+
+          const isMentioned = dayText.includes(spotLower) || significantWords.some(word => dayText.includes(word));
+          if (isMentioned) {
+            let scheduledTime = "";
+            let activityTitle = "";
+            let description = "";
+            let location = registry.name;
+
+            if (day.activities) {
+              for (const act of day.activities) {
+                const actTitleLower = act.title.toLowerCase();
+                const actDescLower = act.description.toLowerCase();
+                if (actTitleLower.includes(spotLower) || actDescLower.includes(spotLower) || significantWords.some(word => actTitleLower.includes(word) || actDescLower.includes(word))) {
+                  scheduledTime = act.time;
+                  activityTitle = act.title;
+                  description = act.description;
+                  location = act.location || registry.name;
+                  break;
+                }
               }
             }
-          }
 
-          if (!matchedSpotsFromRegistry.has(spot)) {
-            matchedSpotsFromRegistry.add(spot);
-            results.push({
+            assignedSpots.add(spot);
+            dayMap[day.dayNumber].push({
               spot,
-              scheduledTime: scheduledTime || "00:00 AM", // fallback placeholder to sort later
+              scheduledTime: scheduledTime || "00:00 AM", // temporary for sorting
               activityTitle: activityTitle || `Visit ${spot}`,
               description: description || `Experience the stunning highlights and scenic views of ${spot}.`,
               location: location
             });
           }
-        }
+        });
+      }
+    });
+
+    // 4. Step 2: Distribute remaining spots of the day's primary city that are not yet assigned anywhere
+    const daysWithCity: { [city: string]: number[] } = {};
+    itinerary.days.forEach((day: any) => {
+      const city = dayPrimaryCities[day.dayNumber];
+      if (city) {
+        if (!daysWithCity[city]) daysWithCity[city] = [];
+        daysWithCity[city].push(day.dayNumber);
+      }
+    });
+
+    for (const city in daysWithCity) {
+      const dayNums = daysWithCity[city]; // list of day numbers visiting this city, e.g. [1, 2]
+      const registry = LANDMARKS_REGISTRY[city];
+      if (!registry) continue;
+
+      // Find unused spots for this city
+      const unassignedSpots = registry.spots.filter(spot => !assignedSpots.has(spot));
+
+      // Distribute them evenly amongst the dayNums
+      unassignedSpots.forEach((spot, idx) => {
+        const targetDayNum = dayNums[idx % dayNums.length];
+        assignedSpots.add(spot);
+
+        dayMap[targetDayNum].push({
+          spot,
+          scheduledTime: "00:00 AM", // placeholder
+          activityTitle: `Explore ${spot}`,
+          description: `Discover the breathtaking beauty and popular sightseeing highlights of ${spot}.`,
+          location: registry.name
+        });
       });
     }
 
-    // 3. For any of the day's actual activities that did NOT match any registry spot, 
-    // let's add them as standalone spots so everything generated by the AI is also listed!
-    if (day.activities) {
-      day.activities.forEach((act: any) => {
-        // Check if this activity is already represented by a matched registry spot
-        const actTitleLower = act.title.toLowerCase();
-        let alreadyMatched = false;
-        
-        results.forEach(res => {
-          const resSpotLower = res.spot.toLowerCase();
-          if (actTitleLower.includes(resSpotLower) || resSpotLower.includes(actTitleLower)) {
-            alreadyMatched = true;
+    // 5. Step 3: Add any of the day's actual activities that did NOT match any registry spot
+    itinerary.days.forEach((day: any) => {
+      if (day.activities) {
+        day.activities.forEach((act: any) => {
+          const actTitleLower = act.title.toLowerCase();
+          let alreadyMatched = false;
+          
+          dayMap[day.dayNumber].forEach(res => {
+            const resSpotLower = res.spot.toLowerCase();
+            if (actTitleLower.includes(resSpotLower) || resSpotLower.includes(actTitleLower)) {
+              alreadyMatched = true;
+            }
+          });
+
+          const isUtilityActivity = actTitleLower.includes("breakfast") || actTitleLower.includes("lunch") || actTitleLower.includes("dinner") || actTitleLower.includes("check in") || actTitleLower.includes("hotel") || actTitleLower.includes("resort");
+
+          if (!alreadyMatched && !isUtilityActivity) {
+            dayMap[day.dayNumber].push({
+              spot: act.title,
+              scheduledTime: act.time,
+              activityTitle: act.title,
+              description: act.description,
+              location: act.location || day.nightStay || "Local Attraction"
+            });
           }
         });
+      }
+    });
 
-        // Also check if general terms like "Lunch", "Breakfast", "Check in at hotel" should be excluded from attractions checklist
-        const isUtilityActivity = actTitleLower.includes("breakfast") || actTitleLower.includes("lunch") || actTitleLower.includes("dinner") || actTitleLower.includes("check in") || actTitleLower.includes("hotel") || actTitleLower.includes("resort");
-
-        if (!alreadyMatched && !isUtilityActivity) {
-          results.push({
-            spot: act.title,
-            scheduledTime: act.time,
-            activityTitle: act.title,
-            description: act.description,
-            location: act.location || day.nightStay || "Local Attraction"
-          });
-        }
-      });
-    }
-
-    // 4. Sort results chronologically by scheduledTime
-    // Let's parse time strings like "09:00 AM" or "02:30 PM" to minutes from midnight
+    // 6. Step 4: Time handling & sorting
     const parseTimeToMinutes = (timeStr: string) => {
-      if (!timeStr || timeStr === "00:00 AM") return 999; // put untimed ones at the end
+      if (!timeStr || timeStr === "00:00 AM") return 999;
       const match = timeStr.trim().match(/^(\d+):(\d+)\s*(AM|PM)$/i);
       if (!match) return 999;
       let hours = parseInt(match[1]);
@@ -316,22 +391,29 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
       return hours * 60 + minutes;
     };
 
-    results.sort((a, b) => parseTimeToMinutes(a.scheduledTime) - parseTimeToMinutes(b.scheduledTime));
+    itinerary.days.forEach((day: any) => {
+      const list = dayMap[day.dayNumber];
 
-    // 5. Fill in sequential timestamps for any spots that are untimed
-    let assignedCount = 0;
-    results.forEach((res, idx) => {
-      if (res.scheduledTime === "00:00 AM") {
-        const fallbackTimes = ["09:30 AM", "12:00 PM", "02:30 PM", "05:00 PM", "07:30 PM"];
-        res.scheduledTime = fallbackTimes[assignedCount % fallbackTimes.length];
-        assignedCount++;
-      }
+      list.sort((a, b) => parseTimeToMinutes(a.scheduledTime) - parseTimeToMinutes(b.scheduledTime));
+
+      let assignedCount = 0;
+      const fallbackTimes = ["10:00 AM", "01:00 PM", "04:00 PM", "06:30 PM", "08:30 PM"];
+      
+      list.forEach(item => {
+        if (item.scheduledTime === "00:00 AM") {
+          item.scheduledTime = fallbackTimes[assignedCount % fallbackTimes.length];
+          assignedCount++;
+        }
+      });
+
+      list.sort((a, b) => parseTimeToMinutes(a.scheduledTime) - parseTimeToMinutes(b.scheduledTime));
     });
 
-    // Final sort after filling missing times
-    results.sort((a, b) => parseTimeToMinutes(a.scheduledTime) - parseTimeToMinutes(b.scheduledTime));
+    return dayMap;
+  }, [itinerary]);
 
-    return results;
+  const getDayAttractions = (day: any) => {
+    return attractionsByDay[day.dayNumber] || [];
   };
 
   const getWhatsAppMessage = () => {
