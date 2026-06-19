@@ -1,0 +1,6 @@
+{
+  "name": "AI Itinerary Generator",
+  "description": "Premium travel itinerary planning platform powered by Gemini AI, with high-fidelity day-by-day itineraries, meal plans, transportation details, and sightseeing guidelines.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
