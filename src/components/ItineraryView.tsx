@@ -60,6 +60,10 @@ const LANDMARKS_REGISTRY: { [key: string]: { name: string; spots: string[] } } =
     name: "Alleppey",
     spots: ["Vembanad Lake Houseboat Cruise", "Alappuzha Beach & Lighthouse", "Kuttanad Backwaters", "Pathiramanal Island"]
   },
+  "alapuzha": {
+    name: "Alleppey",
+    spots: ["Vembanad Lake Houseboat Cruise", "Alappuzha Beach & Lighthouse", "Kuttanad Backwaters", "Pathiramanal Island"]
+  },
   "kumarakom": {
     name: "Kumarakom",
     spots: ["Kumarakom Bird Sanctuary", "Vembanad Lake Sunset Cruise", "Aruvikkuzhi Waterfall"]

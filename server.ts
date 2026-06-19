@@ -19,6 +19,7 @@ const PLACE_COORDINATES: { [key: string]: { lat: number; lng: number; name: stri
   "thekkady": { lat: 9.6031, lng: 77.1615, name: "Thekkady" },
   "alleppey": { lat: 9.4981, lng: 76.3388, name: "Alleppey" },
   "alappuzha": { lat: 9.4981, lng: 76.3388, name: "Alleppey" },
+  "alapuzha": { lat: 9.4981, lng: 76.3388, name: "Alleppey" },
   "kumarakom": { lat: 9.5916, lng: 76.4222, name: "Kumarakom" },
   "wayanad": { lat: 11.6854, lng: 76.1320, name: "Wayanad" },
   "kovalam": { lat: 8.4004, lng: 76.9784, name: "Kovalam" },
@@ -212,6 +213,10 @@ const LANDMARKS_REGISTRY: { [key: string]: { name: string; spots: string[] } } =
     spots: ["Vembanad Lake Houseboat Cruise", "Alappuzha Beach & Lighthouse", "Kuttanad Backwaters", "Pathiramanal Island"]
   },
   "alappuzha": {
+    name: "Alleppey",
+    spots: ["Vembanad Lake Houseboat Cruise", "Alappuzha Beach & Lighthouse", "Kuttanad Backwaters", "Pathiramanal Island"]
+  },
+  "alapuzha": {
     name: "Alleppey",
     spots: ["Vembanad Lake Houseboat Cruise", "Alappuzha Beach & Lighthouse", "Kuttanad Backwaters", "Pathiramanal Island"]
   },
