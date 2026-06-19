@@ -23,6 +23,7 @@ import {
   MessageSquare
 } from "lucide-react";
 import { ItineraryResponse } from "../types";
+import Logo from "./Logo";
 
 interface ItineraryViewProps {
   itinerary: ItineraryResponse;
@@ -127,8 +128,8 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
       {/* Exclusive Print-Only Header Branding */}
       <div className="hidden print:flex items-center justify-between border-b-2 border-slate-200 pb-5 mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-sm">
-            <Compass className="w-6 h-6" />
+          <div className="p-1 bg-white border border-slate-100 rounded-xl shadow-sm flex items-center justify-center">
+            <Logo size={42} />
           </div>
           <div>
             <span className="text-2xl font-black text-slate-800 tracking-tight">
@@ -256,23 +257,38 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                 />
               </div>
               {whatsappPhone.replace(/\D/g, "").length >= 10 ? (
-                <a
-                  href={`https://api.whatsapp.com/send?phone=${
-                    whatsappPhone.replace(/\D/g, "").length === 10
-                      ? "91" + whatsappPhone.replace(/\D/g, "")
-                      : whatsappPhone.replace(/\D/g, "")
-                  }&text=${encodeURIComponent(getWhatsAppMessage())}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => {
-                    setWhatsappSent(true);
-                    setTimeout(() => setWhatsappSent(false), 5000);
-                  }}
-                  className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-emerald-50 shrink-0 text-center"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>{whatsappSent ? "Opened!" : "Compile & Send"}</span>
-                </a>
+                <div className="flex gap-2 shrink-0">
+                  <a
+                    href={`https://api.whatsapp.com/send?phone=${
+                      whatsappPhone.replace(/\D/g, "").length === 10
+                        ? "91" + whatsappPhone.replace(/\D/g, "")
+                        : whatsappPhone.replace(/\D/g, "")
+                    }&text=${encodeURIComponent(getWhatsAppMessage())}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      navigator.clipboard.writeText(getWhatsAppMessage());
+                      setWhatsappSent(true);
+                      setTimeout(() => setWhatsappSent(false), 5000);
+                    }}
+                    className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-emerald-50 shrink-0 text-center"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>{whatsappSent ? "Copied & Opened!" : "Compile & Send"}</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(getWhatsAppMessage());
+                      setWhatsappSent(true);
+                      setTimeout(() => setWhatsappSent(false), 5000);
+                    }}
+                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+                    title="Copy compiled itinerary text to clipboard"
+                  >
+                    <span>Copy Text</span>
+                  </button>
+                </div>
               ) : (
                 <button
                   type="button"

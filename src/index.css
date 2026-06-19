@@ -58,24 +58,37 @@ body {
 
 /* Custom Print Guidelines - Prints only the live itinerary and forces beautiful layout expand */
 @media print {
-  /* Set page defaults and suppress browser default header/footer text (date, title, URL) */
+  /* Suppress browser default page header and footer text (title 'My Google AI Studio App', URLs, Dates, etc.) */
   @page {
-    size: auto;
-    margin: 12mm 15mm;
+    size: A4;
+    margin: 0 !important;
   }
 
-  /* Force absolute visual fidelity, gradients, background colors, and styling exactly like in the web app */
-  body, html {
+  /* Re-inject professional, consistent page margin margins using body padding */
+  body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    background-color: #f8fafc !important; /* Elegant slate background as on-screen */
+    background-color: #f8fafc !important; /* Screen-identical background slate color */
     color: #0f172a !important;
-    font-size: 11pt !important;
+    font-size: 10.5pt !important;
+    margin: 0 !important;
+    padding: 16mm 14mm 16mm 14mm !important; /* Perfect physical margins */
+  }
+
+  html {
+    background-color: #f8fafc !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
-  /* Hide default layout tags and sections */
+  /* Force background colors and text colors to adjust dynamically for visual fidelity */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    text-shadow: none !important;
+  }
+
+  /* Hide default non-printable components */
   .no-print,
   nav,
   footer,
@@ -87,11 +100,12 @@ body {
   form,
   header,
   section.no-print,
-  iframe {
+  iframe,
+  .hero-container {
     display: none !important;
   }
 
-  /* Keep other elements hidden to ensure ONLY the active itinerary prints */
+  /* Hide high-level outer blocks to isolate the itinerary content */
   body > *:not(#root),
   #root > *:not(div),
   #root > div > *:not(.max-w-7xl),
@@ -99,7 +113,7 @@ body {
     display: none !important;
   }
 
-  /* Force main element width styling */
+  /* Force main element width scaling */
   .max-w-7xl {
     max-width: 100% !important;
     width: 100% !important;
@@ -118,8 +132,39 @@ body {
     margin: 0 !important;
   }
 
+  /* Force glass cards to render beautifully inside print with high-contrast text */
+  .glass-panel, .glass-card {
+    background-color: #ffffff !important;
+    background-image: none !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Legible blue, emerald, and red badge printing */
+  .text-sky-700, .text-sky-600 {
+    color: #0369a1 !important;
+  }
+  .text-emerald-700, .text-emerald-600 {
+    color: #047857 !important;
+  }
+  .bg-sky-50 {
+    background-color: #f0f9ff !important;
+    border-color: #bae6fd !important;
+  }
+  .bg-emerald-50 {
+    background-color: #ecfdf5 !important;
+    border-color: #a7f3d0 !important;
+  }
+  .bg-slate-50 {
+    background-color: #f8fafc !important;
+    border-color: #f1f5f9 !important;
+  }
+
   /* Ensure background gradients and colors of elements render perfectly */
   .mesh-bg {
-    background: #f8fafc !important;
+    background-color: #f8fafc !important;
+    background-image: none !important;
   }
 }

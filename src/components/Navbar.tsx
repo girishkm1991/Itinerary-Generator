@@ -1,4 +1,5 @@
-import { Compass, Globe, HelpCircle, Landmark, PhoneCall } from "lucide-react";
+import { Globe, HelpCircle, Landmark, PhoneCall } from "lucide-react";
+import Logo from "./Logo";
 
 interface NavbarProps {
   onScrollToForm: () => void;
@@ -13,10 +14,10 @@ export default function Navbar({ onScrollToForm, onScrollToFAQ, onScrollToDestin
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className="p-2 bg-gradient-to-tr from-sky-600 via-emerald-500 to-emerald-400 rounded-xl text-white shadow-md shadow-sky-100">
-              <Compass className="w-6 h-6 animate-spin-slow" />
+            <div className="p-1 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">
+              <Logo size={36} />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-sky-700 to-emerald-600 bg-clip-text text-transparent tracking-tight">
+            <span className="text-xl font-extrabold bg-gradient-to-r from-emerald-800 via-emerald-600 to-emerald-500 bg-clip-text text-transparent tracking-tight">
               imveloTripsIndia
             </span>
           </div>
