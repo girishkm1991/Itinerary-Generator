@@ -50,16 +50,7 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
   const [whatsappPhone, setWhatsappPhone] = useState("");
   const [whatsappSent, setWhatsappSent] = useState(false);
 
-  const handleSendWhatsApp = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!whatsappPhone.trim()) return;
-    
-    // Clean up non-digits
-    const cleanPhone = whatsappPhone.replace(/\D/g, "");
-    // Ensure accurate country code for India defaults if 10-digits
-    const finalPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
-    
-    // Build beautiful formatted itinerary text
+  const getWhatsAppMessage = () => {
     let message = `*🌟 imveloTripsIndia Custom Itinerary 🌟*\n\n`;
     message += `*Route:* ${itinerary.pickupLocation} ➡️ ${itinerary.destination}\n`;
     message += `*Duration:* ${itinerary.days.length} Days / ${itinerary.days.length - 1} Nights\n`;
@@ -87,12 +78,7 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
     
     message += `📞 *Book/Inquire Now:* +919895712912\n`;
     message += `🔗 *View Interactive Live Itinerary:* ${window.location.href}`;
-    
-    // Launch WhatsApp
-    const waUrl = `https://api.whatsapp.com/send?phone=${finalPhone}&text=${encodeURIComponent(message)}`;
-    window.open(waUrl, "_blank");
-    setWhatsappSent(true);
-    setTimeout(() => setWhatsappSent(false), 5000);
+    return message;
   };
 
   // Determine beautiful backdrop image
@@ -137,6 +123,27 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
 
   return (
     <div id="itinerary-result-section" className="space-y-6 scroll-mt-24">
+      
+      {/* Exclusive Print-Only Header Branding */}
+      <div className="hidden print:flex items-center justify-between border-b-2 border-slate-200 pb-5 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-sm">
+            <Compass className="w-6 h-6" />
+          </div>
+          <div>
+            <span className="text-2xl font-black text-slate-800 tracking-tight">
+              imveloTripsIndia
+            </span>
+            <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Premium Chauffeured Travel Services</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <span className="text-[10px] font-black tracking-widest text-[#0e7490] bg-[#f0f9ff] border border-[#bae6fd] px-3 py-1 rounded-md">
+            PRIVATE TOUR PLAN
+          </span>
+          <p className="text-[9px] text-slate-400 mt-1.5 font-semibold">Chauffeur Allowance &amp; Fuel Covered</p>
+        </div>
+      </div>
       
       {/* 1. Header Hero Card with Frosted Glass Overlay */}
       <div className="relative rounded-3xl overflow-hidden h-[260px] sm:h-[320px] shadow-xl border border-white/20">
@@ -237,7 +244,7 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
               </div>
             </div>
 
-            <form onSubmit={handleSendWhatsApp} className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">+91</span>
                 <input
@@ -248,14 +255,36 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                   className="w-full pl-12 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-semibold"
                 />
               </div>
-              <button
-                type="submit"
-                className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-emerald-50 shrink-0"
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span>{whatsappSent ? "Opened in WhatsApp!" : "Compile & Send"}</span>
-              </button>
-            </form>
+              {whatsappPhone.replace(/\D/g, "").length >= 10 ? (
+                <a
+                  href={`https://api.whatsapp.com/send?phone=${
+                    whatsappPhone.replace(/\D/g, "").length === 10
+                      ? "91" + whatsappPhone.replace(/\D/g, "")
+                      : whatsappPhone.replace(/\D/g, "")
+                  }&text=${encodeURIComponent(getWhatsAppMessage())}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    setWhatsappSent(true);
+                    setTimeout(() => setWhatsappSent(false), 5000);
+                  }}
+                  className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-emerald-50 shrink-0 text-center"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>{whatsappSent ? "Opened!" : "Compile & Send"}</span>
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="px-5 py-2.5 bg-slate-100 text-slate-400 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shrink-0 cursor-not-allowed border border-slate-200"
+                  title="Please enter a valid phone number"
+                >
+                  <MessageSquare className="w-4 h-4 text-slate-300" />
+                  <span>Compile &amp; Send</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Day By Day interactive schedules */}
@@ -309,7 +338,7 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                       </div>
                     </div>
 
-                    <div className="shrink-0 text-slate-400 hover:text-slate-700 p-1 bg-slate-50 rounded-xl transition-all">
+                    <div className="shrink-0 text-slate-400 hover:text-slate-700 p-1 bg-slate-50 rounded-xl transition-all no-print">
                       {isOpen ? <ChevronUp className="w-5 h-5 text-sky-600" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
                     </div>
                   </button>

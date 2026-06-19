@@ -58,7 +58,24 @@ body {
 
 /* Custom Print Guidelines - Prints only the live itinerary and forces beautiful layout expand */
 @media print {
-  /* Hide non-printable elements */
+  /* Set page defaults and suppress browser default header/footer text (date, title, URL) */
+  @page {
+    size: auto;
+    margin: 12mm 15mm;
+  }
+
+  /* Force absolute visual fidelity, gradients, background colors, and styling exactly like in the web app */
+  body, html {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: #f8fafc !important; /* Elegant slate background as on-screen */
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide default layout tags and sections */
   .no-print,
   nav,
   footer,
@@ -69,11 +86,12 @@ body {
   #contact,
   form,
   header,
-  section.no-print {
+  section.no-print,
+  iframe {
     display: none !important;
   }
 
-  /* Robust selection to hide other high-level wrappers entirely from the print renderer */
+  /* Keep other elements hidden to ensure ONLY the active itinerary prints */
   body > *:not(#root),
   #root > *:not(div),
   #root > div > *:not(.max-w-7xl),
@@ -81,22 +99,7 @@ body {
     display: none !important;
   }
 
-  /* Reset document defaults */
-  body, html {
-    background: #ffffff !important;
-    color: #000000 !important;
-    font-size: 11pt !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* Remove body background gradients */
-  .mesh-bg {
-    background: none !important;
-    background-color: #ffffff !important;
-  }
-
-  /* Force outer container to reset spacing */
+  /* Force main element width styling */
   .max-w-7xl {
     max-width: 100% !important;
     width: 100% !important;
@@ -104,40 +107,19 @@ body {
     margin: 0 !important;
   }
 
-  /* Force itinerary result section to occupy full width */
+  /* Style active itinerary result container screen-accurately */
   #itinerary-result-section {
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     box-shadow: none !important;
     border: none !important;
-    background: transparent !important;
     padding: 0 !important;
     margin: 0 !important;
   }
 
-  /* Force glass elements to render cleanly on white page */
-  .glass-panel, .glass-card {
-    background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-
-  /* Keep colors legible on white/grayscale page print */
-  .text-sky-700, .text-sky-600 {
-    color: #0c4a6e !important;
-  }
-  .text-emerald-700, .text-emerald-600 {
-    color: #064e3b !important;
-  }
-  .bg-sky-50 {
-    background-color: #f0f9ff !important;
-    border-color: #bae6fd !important;
-  }
-  .bg-slate-50 {
-    background-color: #f8fafc !important;
-    border-color: #e2e8f0 !important;
+  /* Ensure background gradients and colors of elements render perfectly */
+  .mesh-bg {
+    background: #f8fafc !important;
   }
 }
