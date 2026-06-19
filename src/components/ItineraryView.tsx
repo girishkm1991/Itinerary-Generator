@@ -212,73 +212,124 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
   };
 
   const getDayAttractions = (day: any) => {
-    const locationsSet = new Set<string>();
-    
-    const searchInText = (text: string) => {
-      if (!text) return;
-      const textLower = text.toLowerCase();
-      for (const key in LANDMARKS_REGISTRY) {
-        if (textLower.includes(key)) {
-          locationsSet.add(key);
-        }
-      }
-    };
+    const results: { spot: string; scheduledTime: string; activityTitle: string; description: string; location: string }[] = [];
+    const matchedSpotsFromRegistry = new Set<string>();
 
-    searchInText(day.title);
-    searchInText(day.nightStay);
-    if (day.activities) {
-      day.activities.forEach((act: any) => {
-        searchInText(act.location);
-        searchInText(act.title);
-        searchInText(act.description);
-      });
-    }
-    if (day.sightseeingOrder) {
-      day.sightseeingOrder.forEach((spot: string) => searchInText(spot));
-    }
-    if (day.highlights) {
-      day.highlights.forEach((h: string) => searchInText(h));
-    }
+    // 1. Gather all day's text for pattern matching
+    const textToSearch = [
+      day.title,
+      day.nightStay,
+      day.dailyHighlight,
+      ...(day.sightseeingOrder || []),
+      ...(day.highlights || []),
+      ...(day.activities ? day.activities.map((a: any) => `${a.title} ${a.description} ${a.location}`) : [])
+    ].join(" ").toLowerCase();
 
-    const results: { spot: string; scheduledTime?: string; activityTitle?: string }[] = [];
-    
-    locationsSet.forEach(cityKey => {
+    // 2. Scan LANDMARKS_REGISTRY
+    for (const cityKey in LANDMARKS_REGISTRY) {
+      if (!textToSearch.includes(cityKey)) continue; // Optimisation: only check matching cities
+
       const registry = LANDMARKS_REGISTRY[cityKey];
-      if (registry) {
-        registry.spots.forEach(spot => {
-          let scheduledTime: string | undefined;
-          let activityTitle: string | undefined;
-          
-          const spotLower = spot.toLowerCase();
-          
+      registry.spots.forEach(spot => {
+        const spotLower = spot.toLowerCase();
+        const words = spotLower.split(" ");
+        const significantWords = words.filter(w => w.length > 3 && w !== "lake" && w !== "park" && w !== "beach" && w !== "hills" && w !== "falls" && w !== "temple" && w !== "gardens" && w !== "museum" && (w.length > 4 || w === "tea" || w === "dam" || w === "gap" || w === "tahr"));
+        
+        let isMentioned = textToSearch.includes(spotLower) || significantWords.some(word => textToSearch.includes(word));
+        
+        if (isMentioned) {
+          // Find if there's an existing activity matching it
+          let scheduledTime = "";
+          let activityTitle = "";
+          let description = "";
+          let location = registry.name;
+
           if (day.activities) {
             for (const act of day.activities) {
-              const titleLower = act.title.toLowerCase();
-              const descLower = act.description.toLowerCase();
-              if (titleLower.includes(spotLower) || 
-                  descLower.includes(spotLower) || 
-                  spotLower.includes(titleLower)) {
+              const actTitleLower = act.title.toLowerCase();
+              const actDescLower = act.description.toLowerCase();
+              if (actTitleLower.includes(spotLower) || actDescLower.includes(spotLower) || significantWords.some(word => actTitleLower.includes(word) || actDescLower.includes(word))) {
                 scheduledTime = act.time;
                 activityTitle = act.title;
+                description = act.description;
+                location = act.location || registry.name;
                 break;
               }
             }
           }
-          
-          if (!scheduledTime) {
-            const inSightseeing = day.sightseeingOrder?.some((s: string) => s.toLowerCase().includes(spotLower) || spotLower.includes(s.toLowerCase()));
-            const inHighlights = day.highlights?.some((h: string) => h.toLowerCase().includes(spotLower) || spotLower.includes(h.toLowerCase()));
-            if (inSightseeing || inHighlights) {
-              activityTitle = "Scheduled";
-            }
-          }
 
-          if (!results.some(r => r.spot === spot)) {
-            results.push({ spot, scheduledTime, activityTitle });
+          if (!matchedSpotsFromRegistry.has(spot)) {
+            matchedSpotsFromRegistry.add(spot);
+            results.push({
+              spot,
+              scheduledTime: scheduledTime || "00:00 AM", // fallback placeholder to sort later
+              activityTitle: activityTitle || `Visit ${spot}`,
+              description: description || `Experience the stunning highlights and scenic views of ${spot}.`,
+              location: location
+            });
+          }
+        }
+      });
+    }
+
+    // 3. For any of the day's actual activities that did NOT match any registry spot, 
+    // let's add them as standalone spots so everything generated by the AI is also listed!
+    if (day.activities) {
+      day.activities.forEach((act: any) => {
+        // Check if this activity is already represented by a matched registry spot
+        const actTitleLower = act.title.toLowerCase();
+        let alreadyMatched = false;
+        
+        results.forEach(res => {
+          const resSpotLower = res.spot.toLowerCase();
+          if (actTitleLower.includes(resSpotLower) || resSpotLower.includes(actTitleLower)) {
+            alreadyMatched = true;
           }
         });
+
+        // Also check if general terms like "Lunch", "Breakfast", "Check in at hotel" should be excluded from attractions checklist
+        const isUtilityActivity = actTitleLower.includes("breakfast") || actTitleLower.includes("lunch") || actTitleLower.includes("dinner") || actTitleLower.includes("check in") || actTitleLower.includes("hotel") || actTitleLower.includes("resort");
+
+        if (!alreadyMatched && !isUtilityActivity) {
+          results.push({
+            spot: act.title,
+            scheduledTime: act.time,
+            activityTitle: act.title,
+            description: act.description,
+            location: act.location || day.nightStay || "Local Attraction"
+          });
+        }
+      });
+    }
+
+    // 4. Sort results chronologically by scheduledTime
+    // Let's parse time strings like "09:00 AM" or "02:30 PM" to minutes from midnight
+    const parseTimeToMinutes = (timeStr: string) => {
+      if (!timeStr || timeStr === "00:00 AM") return 999; // put untimed ones at the end
+      const match = timeStr.trim().match(/^(\d+):(\d+)\s*(AM|PM)$/i);
+      if (!match) return 999;
+      let hours = parseInt(match[1]);
+      const minutes = parseInt(match[2]);
+      const ampm = match[3].toUpperCase();
+      if (ampm === "PM" && hours < 12) hours += 12;
+      if (ampm === "AM" && hours === 12) hours = 0;
+      return hours * 60 + minutes;
+    };
+
+    results.sort((a, b) => parseTimeToMinutes(a.scheduledTime) - parseTimeToMinutes(b.scheduledTime));
+
+    // 5. Fill in sequential timestamps for any spots that are untimed
+    let assignedCount = 0;
+    results.forEach((res, idx) => {
+      if (res.scheduledTime === "00:00 AM") {
+        const fallbackTimes = ["09:30 AM", "12:00 PM", "02:30 PM", "05:00 PM", "07:30 PM"];
+        res.scheduledTime = fallbackTimes[assignedCount % fallbackTimes.length];
+        assignedCount++;
       }
     });
+
+    // Final sort after filling missing times
+    results.sort((a, b) => parseTimeToMinutes(a.scheduledTime) - parseTimeToMinutes(b.scheduledTime));
 
     return results;
   };
@@ -565,13 +616,13 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                     className="w-full text-left p-5 sm:p-6 flex items-center justify-between gap-4 focus:outline-none cursor-pointer"
                   >
                     <div className="flex items-center gap-4">
-                      {/* Round bullet badge */}
-                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 shadow-sm transition-all ${
+                      {/* Pill style badge */}
+                      <div className={`px-4 py-2 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 shadow-sm transition-all whitespace-nowrap ${
                         isOpen 
                           ? "bg-sky-600 text-white ring-4 ring-sky-100" 
                           : "bg-slate-100 text-slate-500"
                       }`}>
-                        D{day.dayNumber}
+                        Day {day.dayNumber}
                       </div>
 
                       <div>
@@ -620,26 +671,26 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                             </h4>
 
                             <div className="relative border-l border-sky-100 pl-4 ml-2 space-y-6 pt-2">
-                              {day.activities.map((act, index) => (
+                              {getDayAttractions(day).map((item, index) => (
                                 <div key={index} className="relative space-y-1">
                                   {/* Left colored dot connector */}
                                   <div className="absolute -left-[2px] -translate-x-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-sky-500 ring-4 ring-white" />
                                   
                                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                                     <span className="text-xs font-black text-sky-600 font-mono bg-sky-100/70 px-2 py-0.5 rounded-md self-start text-[10px]">
-                                      {act.time}
+                                      {item.scheduledTime}
                                     </span>
                                     <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
                                       <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                                      {act.location}
+                                      {item.location}
                                     </span>
                                   </div>
                                   
                                   <h5 className="text-sm font-bold text-slate-800">
-                                    {act.title}
+                                    {item.activityTitle}
                                   </h5>
                                   <p className="text-xs text-slate-500 leading-relaxed">
-                                    {act.description}
+                                    {item.description}
                                   </p>
                                 </div>
                               ))}
@@ -661,15 +712,9 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                                   <div className="space-y-0.5">
                                     <span className="text-slate-800 text-xs font-bold block">{item.spot}</span>
-                                    {item.scheduledTime ? (
-                                      <span className="text-[9px] bg-slate-100 border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono font-black uppercase">
-                                        Scheduled {item.scheduledTime}
-                                      </span>
-                                    ) : (
-                                      <span className="text-[9px] bg-sky-50 text-sky-700 border border-sky-100 px-1.5 py-0.5 rounded font-semibold">
-                                        Included &amp; Covered
-                                      </span>
-                                    )}
+                                    <span className="text-[9px] bg-slate-100 border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono font-black uppercase">
+                                      Scheduled {item.scheduledTime}
+                                    </span>
                                   </div>
                                 </li>
                               ))}
@@ -684,26 +729,26 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                           </h4>
 
                           <div className="relative border-l border-sky-100 pl-4 ml-2 space-y-6">
-                            {day.activities.map((act, index) => (
+                            {getDayAttractions(day).map((item, index) => (
                               <div key={index} className="relative space-y-1">
                                 {/* Left colored dot connector */}
                                 <div className="absolute -left-[2px] -translate-x-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-sky-500 ring-4 ring-white" />
                                 
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                                   <span className="text-xs font-black text-sky-600 font-mono bg-sky-100/70 px-2 py-0.5 rounded-md self-start text-[10px]">
-                                    {act.time}
+                                    {item.scheduledTime}
                                   </span>
                                   <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
                                     <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                                    {act.location}
+                                    {item.location}
                                   </span>
                                 </div>
                                 
                                 <h5 className="text-sm font-bold text-slate-800">
-                                  {act.title}
+                                  {item.activityTitle}
                                 </h5>
                                 <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">
-                                  {act.description}
+                                  {item.description}
                                 </p>
                               </div>
                             ))}
