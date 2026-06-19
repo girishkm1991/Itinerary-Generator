@@ -65,7 +65,7 @@ export default function ItineraryForm({ onSubmit, loading, onSelectPreset }: Iti
       return;
     }
     if (!formData.destination.trim()) {
-      setError("Please specify a destination city.");
+      setError(formData.tripType === "One Way" ? "Please specify a destination address or city." : "Please specify places to visit.");
       return;
     }
     if (formData.numberOfDays <= 0 || formData.numberOfDays > 15) {
@@ -201,18 +201,22 @@ export default function ItineraryForm({ onSubmit, loading, onSelectPreset }: Iti
           <div className="space-y-1.5">
             <label className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-emerald-500" />
-              Destination City
+              {formData.tripType === "One Way" ? "Destination Address / City" : "Places to visit"}
             </label>
             <input
               type="text"
               name="destination"
               id="destination-input"
-              placeholder="e.g. Munnar, Shimla, Jaipur, Goa"
+              placeholder={formData.tripType === "One Way" ? "e.g. Munnar, Shimla, Jaipur, Goa" : "e.g. Munnar - Thekkady - Alleppey"}
               value={formData.destination}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-slate-800 text-sm transition-all shadow-inner"
             />
-            <p className="text-[11px] text-slate-500">The destination or route you wish to explore primarily.</p>
+            <p className="text-[11px] text-slate-500">
+              {formData.tripType === "One Way"
+                ? "The destination address or city where you wish to be dropped off."
+                : "The primary list of highlights, local spots, or town route you want to explore."}
+            </p>
           </div>
 
           {/* Travel Date */}

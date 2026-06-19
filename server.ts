@@ -11,6 +11,105 @@ const PORT = 3000;
 
 app.use(express.json());
 
+// Distance dictionary between popular pickup Hubs and tourist Destinations in India (in KM - one way)
+const DISTANCE_REGISTRY: { [key: string]: { [key: string]: number } } = {
+  "delhi": {
+    "shimla": 345,
+    "manali": 535,
+    "agra": 235,
+    "jaipur": 270,
+    "dehradun": 250,
+    "haridwar": 220,
+    "rishikesh": 240,
+    "nainital": 300,
+    "dharamshala": 475,
+  },
+  "cochin": {
+    "munnar": 125,
+    "thekkady": 160,
+    "alleppey": 85,
+    "kumarakom": 80,
+    "wayanad": 260,
+    "kovalam": 220,
+    "trivandrum": 205,
+    "vagamon": 105,
+  },
+  "kochi": {
+    "munnar": 125,
+    "thekkady": 160,
+    "alleppey": 85,
+    "kumarakom": 80,
+    "wayanad": 260,
+    "kovalam": 220,
+    "trivandrum": 205,
+    "vagamon": 105,
+  },
+  "bangalore": {
+    "coorg": 255,
+    "mysore": 145,
+    "ooty": 270,
+    "wayanad": 280,
+    "chikmagalur": 245,
+    "kabini": 210,
+    "nandi hills": 60,
+    "pondicherry": 310,
+    "goa": 560,
+  },
+  "mumbai": {
+    "lonavala": 85,
+    "mahabaleshwar": 260,
+    "goa": 590,
+    "pune": 150,
+    "shirdi": 240,
+    "alibaug": 100,
+  },
+  "chennai": {
+    "pondicherry": 150,
+    "ooty": 550,
+    "tirupati": 135,
+    "yelagiri": 230,
+    "kodaikanal": 530,
+  }
+};
+
+function findExactBaseDistance(pickup: string, dest: string): number {
+  const pLower = pickup.toLowerCase();
+  const dLower = dest.toLowerCase();
+
+  for (const pKey in DISTANCE_REGISTRY) {
+    if (pLower.includes(pKey)) {
+      for (const dKey in DISTANCE_REGISTRY[pKey]) {
+        if (dLower.includes(dKey)) {
+          return DISTANCE_REGISTRY[pKey][dKey];
+        }
+      }
+    }
+  }
+
+  // Check reciprocal (e.g. if user flipped pickup and destination keyword mapping)
+  for (const pKey in DISTANCE_REGISTRY) {
+    if (dLower.includes(pKey)) {
+      for (const dKey in DISTANCE_REGISTRY[pKey]) {
+        if (pLower.includes(dKey)) {
+          return DISTANCE_REGISTRY[pKey][dKey];
+        }
+      }
+    }
+  }
+
+  return 0; // Not found
+}
+
+function getDeterministicHashDistance(pickup: string, dest: string): number {
+  const combined = (pickup + dest).toLowerCase();
+  let hash = 0;
+  for (let i = 0; i < combined.length; i++) {
+    hash = combined.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const positiveHash = Math.abs(hash);
+  return 120 + (positiveHash % 301); // 120km to 420km
+}
+
 // Initialize GoogleGenAI SDK with useragent header as required by the system skill
 const apiKey = process.env.GEMINI_API_KEY;
 let ai: GoogleGenAI | null = null;
@@ -50,9 +149,37 @@ function generateMockItinerary(reqBody: any): any {
   const travelers = numberOfTravelers || 2;
   const vehicle = vehicleType || "Sedan";
 
-  // Simple rule-based mock matching the customized input
-  const distance = Math.floor(150 + Math.random() * 250);
-  const drivingTime = (distance / 50).toFixed(1);
+  // Calculate high-fidelity distance matrix parameters
+  let baseDistance = findExactBaseDistance(pickupLocation, destination);
+  if (baseDistance === 0) {
+    baseDistance = getDeterministicHashDistance(pickupLocation, destination);
+  }
+
+  let distance = baseDistance;
+  let drivingTimeStr = "";
+
+  if (tripType === "Round Trip") {
+    distance = (2 * baseDistance) + (daysCount * 60);
+    drivingTimeStr = `${(distance / 50).toFixed(1)} hours (includes local sightseeing)`;
+  } else {
+    distance = baseDistance;
+    drivingTimeStr = `${(distance / 50).toFixed(1)} hours`;
+  }
+
+  // Realistic billing based on premium cab mileage rates for different classes of vehicle
+  const rates: { [key: string]: number } = {
+    "Sedan": 14,
+    "Ertiga": 17,
+    "Innova": 21,
+    "Innova Crysta": 24,
+    "Traveller": 28,
+    "Urbania": 36,
+    "Mini Bus": 48,
+    "Bus": 65
+  };
+  const rate = rates[vehicle] || 14;
+  const baseCost = distance * rate;
+  const driverCharge = daysCount * 450;
 
   const mockDays = [];
   const sightseeingPool = [
@@ -110,7 +237,7 @@ function generateMockItinerary(reqBody: any): any {
   }
 
   return {
-    tripSummary: `A beautiful and tailored travel itinerary starting from ${pickupLocation} and taking you through the magnificent destinations of ${destination}. Designed precisely for ${travelers} travelers using representing a ${tripType} journey in a comfortable ${vehicle}. ${specialRequests ? `Special request note: "${specialRequests}" is integrated.` : ""}`,
+    tripSummary: `A beautiful and tailored travel itinerary starting from ${pickupLocation} and taking you through the magnificent destinations of ${destination}. Designed precisely for ${travelers} travelers representing a ${tripType} journey in a comfortable ${vehicle}. ${specialRequests ? `Special request note: "${specialRequests}" is integrated.` : ""}`,
     pickupLocation,
     destination,
     travelDate,
@@ -119,7 +246,7 @@ function generateMockItinerary(reqBody: any): any {
     tripType,
     totalDurationDays: daysCount,
     estimatedDistanceKm: `${distance} km`,
-    estimatedDrivingTime: `${drivingTime} hours`,
+    estimatedDrivingTime: drivingTimeStr,
     days: mockDays,
     returnJourneyDetails: tripType === "Round Trip" 
       ? `After scenic afternoon visits, check out from the hotel and begin your comfortable return travel back to ${pickupLocation} in your private ${vehicle}.`
@@ -130,8 +257,8 @@ function generateMockItinerary(reqBody: any): any {
       "Inform the private vehicle driver of any changes to dietary options early."
     ],
     estimatedCostRange: {
-      min: daysCount * 4500 + travelers * 500,
-      max: daysCount * 8500 + travelers * 1000,
+      min: Math.round(baseCost + driverCharge),
+      max: Math.round((baseCost * 1.15) + driverCharge + 1000),
       currency: "INR"
     }
   };
@@ -281,6 +408,47 @@ Make sure to estimate travel distance (KM) and total driving time realistically 
     }
 
     const parsedItinerary = JSON.parse(textOutput.trim());
+    
+    // Normalize and calibrate the response distance, driving time, and pricing to match our exact Indian cab math
+    let baseDist = findExactBaseDistance(pickupLocation, destination);
+    if (baseDist === 0) {
+      baseDist = getDeterministicHashDistance(pickupLocation, destination);
+    }
+
+    let finalDist = baseDist;
+    let computedTimeStr = "";
+    if (tripType === "Round Trip") {
+      finalDist = (2 * baseDist) + (parseInt(numberOfDays) || 3) * 60;
+      computedTimeStr = `${(finalDist / 50).toFixed(1)} hours (includes local sightseeing)`;
+    } else {
+      finalDist = baseDist;
+      computedTimeStr = `${(finalDist / 50).toFixed(1)} hours`;
+    }
+
+    parsedItinerary.estimatedDistanceKm = `${finalDist} km`;
+    parsedItinerary.estimatedDrivingTime = computedTimeStr;
+
+    // Recalculate cost ranges to be realistic to Indian cab pricing models per km
+    const rates: { [key: string]: number } = {
+      "Sedan": 14,
+      "Ertiga": 17,
+      "Innova": 21,
+      "Innova Crysta": 24,
+      "Traveller": 28,
+      "Urbania": 36,
+      "Mini Bus": 48,
+      "Bus": 65
+    };
+    const rate = rates[vehicleType] || 14;
+    const baseCost = finalDist * rate;
+    const driverCharge = (parseInt(numberOfDays) || 3) * 450;
+    
+    parsedItinerary.estimatedCostRange = {
+      min: Math.round(baseCost + driverCharge),
+      max: Math.round((baseCost * 1.15) + driverCharge + 1000),
+      currency: "INR"
+    };
+
     res.json(parsedItinerary);
 
   } catch (error) {
