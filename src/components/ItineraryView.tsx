@@ -545,7 +545,7 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
         </div>
 
         {/* Heading details inside image cover */}
-        <div className="absolute bottom-6 left-6 right-6 text-white flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+        <div className="absolute bottom-6 left-6 right-6 text-white text-left">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <span className="px-2.5 py-0.5 bg-emerald-500/20 backdrop-blur-md text-emerald-300 text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-500/20">
@@ -576,29 +576,6 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
               </span>
             </p>
           </div>
-
-          {/* Right side: Beautiful visual thumbnails of popular places visited */}
-          {getItineraryLandmarks().length > 0 && (
-            <div id="header-spots-gallery" className="hidden md:flex items-center gap-3 shrink-0 mb-1 z-10">
-              {getItineraryLandmarks().map((spot, index) => (
-                <div 
-                  key={index} 
-                  className="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl overflow-hidden relative border border-white/25 shadow-lg group cursor-default hover:border-emerald-400 hover:scale-[1.03] transition-all duration-300 bg-slate-900/40 backdrop-blur-sm"
-                >
-                  <img 
-                    src={getSpotImage(spot)} 
-                    alt={spot} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-80 group-hover:opacity-100"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent" />
-                  <span className="absolute bottom-2 left-2 right-2 text-[9px] font-black text-white line-clamp-2 leading-snug text-left tracking-wide uppercase">
-                    {spot}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
