@@ -237,18 +237,27 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
 
           if (!isUtilityActivity) {
             let spotName = act.location || act.title;
-            if (spotName.toLowerCase().startsWith("curated sightseeing at ")) {
-              spotName = spotName.substring("curated sightseeing at ".length);
-            } else if (spotName.toLowerCase().startsWith("curated sightseeing in ")) {
-              spotName = spotName.substring("curated sightseeing in ".length);
-            } else if (spotName.toLowerCase().startsWith("visit ")) {
-              spotName = spotName.substring("visit ".length);
-            }
+            // Clean up spot name and activity title to eliminate 'curated' and 'transit'
+            spotName = spotName.replace(/curated\s+sightseeing\s+at\s+/gi, "");
+            spotName = spotName.replace(/curated\s+sightseeing\s+in\s+/gi, "");
+            spotName = spotName.replace(/curated\s+tour\s+of\s+/gi, "");
+            spotName = spotName.replace(/curated\s+/gi, "");
+            spotName = spotName.replace(/visit\s+/gi, "");
+
+            let actTitle = act.title || "";
+            actTitle = actTitle.replace(/curated\s+sightseeing\s+at\s+/gi, "Sightseeing at ");
+            actTitle = actTitle.replace(/curated\s+sightseeing\s+in\s+/gi, "Sightseeing in ");
+            actTitle = actTitle.replace(/curated\s+tour\s+of\s+/gi, "Tour of ");
+            actTitle = actTitle.replace(/curated\s+/gi, "");
+
+            let timeClean = act.time || "10:00 AM";
+            timeClean = timeClean.replace(/Transit\s+Stop/gi, "Stop");
+            timeClean = timeClean.replace(/Transit/gi, "");
 
             dayMap[day.dayNumber].push({
               spot: spotName,
-              scheduledTime: act.time || "10:00 AM",
-              activityTitle: act.title,
+              scheduledTime: timeClean,
+              activityTitle: actTitle,
               description: act.description || `Discover the beautiful scenery and highlights of ${spotName}.`,
               location: act.location || itinerary.destination
             });
@@ -603,7 +612,7 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                           </h3>
                         </div>
                         <p className="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-2">
-                          <span className="font-semibold text-sky-600">Transit limit: {day.estimatedTravelTime}</span>
+                          <span className="font-semibold text-sky-600">Local travel time: {day.estimatedTravelTime}</span>
                           &bull;
                           <span>Stay: {day.nightStay}</span>
                         </p>
@@ -635,10 +644,10 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                       {/* Main Sightseeing Timeline & Landmarks (Merged) */}
                       {getDayAttractions(day).length > 0 ? (
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-1">
-                          {/* Left / Main Column: Transit timeline */}
+                          {/* Left / Main Column: Route timeline */}
                           <div className="lg:col-span-7 space-y-4">
                             <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5 border-b border-slate-100 pb-2">
-                              <Navigation className="w-4 h-4 text-sky-500" /> Visiting Route Transit Order (Sequential Stops)
+                              <Navigation className="w-4 h-4 text-sky-500" /> Route Visiting Order (Sequential Stops)
                             </h4>
 
                             <div className="relative border-l border-sky-100 pl-4 ml-2 space-y-6 pt-2">
@@ -696,7 +705,7 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                         /* Simple Fallback when no attractions map to the day */
                         <div className="space-y-4">
                           <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                            Visiting Route Transit Order (Sequential Stops)
+                            Route Visiting Order (Sequential Stops)
                           </h4>
 
                           <div className="relative border-l border-sky-100 pl-4 ml-2 space-y-6">
@@ -727,11 +736,11 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                         </div>
                       )}
 
-                      {/* Sightseeing order shortcut */}
-                      <div className="p-3 bg-white border border-slate-100 rounded-xl">
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                          <Navigation className="w-3.5 h-3.5 text-emerald-500" /> RECOMMENDED TRANSIT ORDER
-                        </div>
+                       {/* Sightseeing order shortcut */}
+                       <div className="p-3 bg-white border border-slate-100 rounded-xl">
+                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                           <Navigation className="w-3.5 h-3.5 text-emerald-500" /> RECOMMENDED VISITING ORDER
+                         </div>
                         <div className="flex flex-wrap items-center gap-y-1.5 gap-x-2 text-xs font-semibold text-slate-700">
                           {day.sightseeingOrder.map((spot, spIdx) => (
                             <span key={spIdx} className="flex items-center gap-2">

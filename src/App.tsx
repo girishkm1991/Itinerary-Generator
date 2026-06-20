@@ -587,7 +587,7 @@ export default function App() {
                   </div>
                   <h4 className="text-xs font-bold text-white">Tolls &amp; Border Fees</h4>
                   <p className="text-[11px] text-slate-400 leading-relaxed">
-                    National highway tolls, destination municipal road taxes, and state border permit charges are calculated actuals based on your transit routes.
+                    National highway tolls, destination municipal road taxes, and state border permit charges are calculated actuals based on your travel routes.
                   </p>
                 </div>
 
@@ -683,7 +683,7 @@ export default function App() {
             <div className="flex gap-4">
               <span className="hover:text-slate-300 transition-colors">Privacy Charter</span>
               <span>&bull;</span>
-              <span className="hover:text-slate-300 transition-colors">Transit Agreements</span>
+              <span className="hover:text-slate-300 transition-colors">Travel Agreements</span>
               <span>&bull;</span>
               <span className="hover:text-slate-300 transition-colors">Toll Guidelines</span>
             </div>

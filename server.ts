@@ -433,18 +433,18 @@ function generateMockItinerary(reqBody: any): any {
     const daySpots = daysSpots[i - 1] || [];
 
     const highlights = daySpots.length > 0
-      ? daySpots.map(spot => `Premium curated tour of ${spot}`)
+      ? daySpots.map(spot => `Guided tour of ${spot}`)
       : [`Relax and explore local town streets in ${destination}`, "Savor fine regional hospitality options"];
 
     if (highlights.length < 3) {
       highlights.push(`Taste authentic premium dining dishes matching your flavor requests`);
-      highlights.push(`Smooth inner-city transit managed by your dedicated ${vehicle} chauffeur`);
+      highlights.push(`Smooth local travel managed by your dedicated ${vehicle} chauffeur`);
     }
 
     const activities = daySpots.map((spot, spotIdx) => {
       return {
-        time: `Transit Stop ${spotIdx + 1}`,
-        title: `Curated Sightseeing at ${spot}`,
+        time: `Stop ${spotIdx + 1}`,
+        title: `Sightseeing at ${spot}`,
         description: `Explore the magnificent architecture, stunning vistas, and local historical facets of ${spot}. Spend quality time enjoying activities.`,
         location: spot
       };
@@ -452,20 +452,23 @@ function generateMockItinerary(reqBody: any): any {
 
     if (activities.length === 0) {
       activities.push({
-        time: "Transit Stop 1",
+        time: "Stop 1",
         title: "Leisure Exploration & Shopping",
         description: `Dedicated leisure day window in ${destination}. Stroll across regional craft boutiques and enjoy local street flavors at your absolute pacing preference.`,
         location: `${destination} Town Center`
       });
     }
 
+    // Determine day cities to construct simple location-specific title for each day
+    const dayCities = Array.from(new Set(daySpots.map(spot => getSpotCity(spot)).filter(c => c !== "Other")));
+    let dayLocationStr = dayCities.join(" & ");
+    if (!dayLocationStr) {
+      dayLocationStr = destination;
+    }
+
     mockDays.push({
       dayNumber: i,
-      title: i === 1 
-        ? `Grand Arrival & Exploring ${destination}` 
-        : i === daysCount 
-          ? `Last Sightseeing & Scenic Departure` 
-          : `Deep Sightseeing Program in ${destination}`,
+      title: `Exploring ${dayLocationStr}`,
       highlights: highlights.slice(0, 3),
       sightseeingOrder: daySpots.length > 0 ? daySpots : [`${destination} Leisure Window`],
       activities,
@@ -474,11 +477,11 @@ function generateMockItinerary(reqBody: any): any {
         lunch: `Tailored local lunch catering to your requests near your active sightseeing points`,
         dinner: `Authentic traditional dinner serving regional specialties at high-class venue`
       },
-      estimatedTravelTime: `${Math.floor(1 + Math.random() * 2)}.5 hours of active inner road transit`,
-      nightStay: `Luxury Hotel or Resort in ${destination}`,
+      estimatedTravelTime: `${Math.floor(1 + Math.random() * 2)}.5 hours of active local road travel`,
+      nightStay: `Luxury Hotel or Resort in ${dayLocationStr}`,
       dailyHighlight: daySpots.length > 0 
         ? `Memorable evening exploring the iconic landmarks of ${daySpots[daySpots.length - 1]}.`
-        : `A relaxing evening enjoying the grand hospitality and premium atmosphere in ${destination}.`
+        : `A relaxing evening enjoying the grand hospitality and premium atmosphere in ${dayLocationStr}.`
     });
   }
 
@@ -563,7 +566,7 @@ ABSOLUTE MANDATORY RULES FOR PLACES AND SIGHTSEEING:
 6. NEVER invent generic landmarks or sightseeing locations (e.g., do NOT generate "Grand City Palace", "Beautiful Scenic Overlook", "Heritage Museum", "Adventure Sports Arena", "Mystic Botanical Gardens", "Sunset View Point", "Cultural Village", "Scenic Lake", or "Historic Fort").
 7. GEOGRAPHICAL GROUPING RULE: You MUST cluster the selected places by city/region/sub-area. For example, if some selected places are in Munnar and others are in Thekkady, make sure Munnar places are scheduled together on one day (e.g. Day 1), and Thekkady places are scheduled together on a different day (e.g. Day 2). DO NOT mix places from different remote cities/areas on the same day. Each day should be dedicated to a single main city/region.
 
-Make sure to estimate travel distance (KM) and total driving time realistically based on the route between ${pickupLocation} and ${destination}. Suggest Breakfast, Lunch, Dinner, optimized daily sightseeing transit order, sequential transit stops (e.g. "Transit Stop 1", "Transit Stop 2" in order of visit), activities, daily highlights, night stay locations, return journey on the final day, and three helpful travel tips. Provide an estimated cost range in INR (Indian Rupees) representing the total package premium feel.`;
+Make sure to estimate travel distance (KM) and total driving time realistically based on the route between ${pickupLocation} and ${destination}. Suggest Breakfast, Lunch, Dinner, optimized daily sightseeing order, sequential visit stops (e.g. "Stop 1", "Stop 2" in order of visit), activities, daily highlights, night stay locations, return journey on the final day, and three helpful travel tips. Provide an estimated cost range in INR (Indian Rupees) representing the total package feel.`;
 
     console.log("Sending itinerary request to Gemini API...");
     const response = await ai.models.generateContent({
@@ -597,7 +600,7 @@ Make sure to estimate travel distance (KM) and total driving time realistically 
                 type: Type.OBJECT,
                 properties: {
                   dayNumber: { type: Type.INTEGER },
-                  title: { type: Type.STRING, description: "Theme of the day" },
+                  title: { type: Type.STRING, description: "Theme/region being toured today, formatted simply e.g., 'Exploring Munnar' or 'Exploring Munnar & Thekkady'. Identify which cities/sights are being visited today and include them. Avoid generic words like 'Transit', 'Curated', 'Grand', 'Core', 'Program', or 'Detailed'. Keep it simple and natural for travelers." },
                   highlights: {
                     type: Type.ARRAY,
                     items: { type: Type.STRING },
@@ -613,7 +616,7 @@ Make sure to estimate travel distance (KM) and total driving time realistically 
                     items: {
                       type: Type.OBJECT,
                       properties: {
-                        time: { type: Type.STRING, description: "Sequential transit step name e.g., 'Transit Stop 1' or 'Transit Stop 2' indicating visit sequence" },
+                        time: { type: Type.STRING, description: "Sequential step name e.g., 'Stop 1' or 'Stop 2' indicating visit sequence" },
                         title: { type: Type.STRING, description: "Short title of activity" },
                         description: { type: Type.STRING, description: "Detailed summary of what they will see or do" },
                         location: { type: Type.STRING, description: "Name of the spot/place" }
@@ -630,7 +633,7 @@ Make sure to estimate travel distance (KM) and total driving time realistically 
                     },
                     required: ["breakfast", "lunch", "dinner"]
                   },
-                  estimatedTravelTime: { type: Type.STRING, description: "Estimated day's transit duration" },
+                  estimatedTravelTime: { type: Type.STRING, description: "Estimated day's driving and touring duration, e.g., '2.5 hours of driving'" },
                   nightStay: { type: Type.STRING, description: "Specific overnight accommodation recommendations" },
                   dailyHighlight: { type: Type.STRING, description: "Main memorable moment of this specific day" }
                 },
