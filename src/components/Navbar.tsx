@@ -1,32 +1,48 @@
-import { Globe, Compass, Landmark, PhoneCall, CarFront } from "lucide-react";
+import { Globe, Compass, Landmark, PhoneCall, CarFront, ArrowLeft } from "lucide-react";
 import Logo from "./Logo";
 
 interface NavbarProps {
   currentTab: "explore" | "planner" | "itinerary" | "fleet";
   onChangeTab: (tab: "explore" | "planner" | "itinerary" | "fleet") => void;
   hasItinerary: boolean;
+  canGoBack: boolean;
+  onBack: () => void;
 }
 
-export default function Navbar({ currentTab, onChangeTab, hasItinerary }: NavbarProps) {
+export default function Navbar({ currentTab, onChangeTab, hasItinerary, canGoBack, onBack }: NavbarProps) {
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 transition-all duration-300 no-print">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div 
-            className="flex items-center gap-2 cursor-pointer" 
-            onClick={() => onChangeTab("explore")}
-          >
-            <div className="p-1 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center animate-pulse-slow">
-              <Logo size={36} />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-base sm:text-lg font-black bg-gradient-to-r from-emerald-800 via-emerald-600 to-emerald-500 bg-clip-text text-transparent tracking-tight leading-none">
-                imveloTripsIndia
-              </span>
-              <span className="text-[9px] text-slate-400 font-extrabold tracking-widest uppercase">
-                AI Concierge
-              </span>
+          {/* Leftside Controls (Back Button + Logo) */}
+          <div className="flex items-center gap-3">
+            {canGoBack && (
+              <button
+                onClick={onBack}
+                className="p-1.5 text-slate-600 hover:text-sky-600 bg-slate-100 hover:bg-sky-50 rounded-xl transition-all duration-300 flex items-center gap-1 cursor-pointer border border-slate-250/20 active:scale-95 shrink-0"
+                title="Go Back"
+              >
+                <ArrowLeft className="w-4.5 h-4.5" />
+                <span className="hidden sm:inline text-xs font-extrabold pr-0.5">Back</span>
+              </button>
+            )}
+
+            {/* Logo */}
+            <div 
+              className="flex items-center gap-2 cursor-pointer" 
+              onClick={() => onChangeTab("explore")}
+            >
+              <div className="p-1 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center animate-pulse-slow">
+                <Logo size={36} />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-base sm:text-lg font-black bg-gradient-to-r from-emerald-800 via-emerald-600 to-emerald-500 bg-clip-text text-transparent tracking-tight leading-none">
+                  imveloTripsIndia
+                </span>
+                <span className="text-[9px] text-slate-400 font-extrabold tracking-widest uppercase">
+                  AI Concierge
+                </span>
+              </div>
             </div>
           </div>
 

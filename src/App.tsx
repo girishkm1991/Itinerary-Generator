@@ -183,7 +183,32 @@ const FLEET_GUIDE_DATA = [
 ];
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<"explore" | "planner" | "itinerary" | "fleet">("explore");
+  const [currentTab, _setCurrentTab] = useState<"explore" | "planner" | "itinerary" | "fleet">("explore");
+  const [tabHistory, setTabHistory] = useState<("explore" | "planner" | "itinerary" | "fleet")[]>(["explore"]);
+
+  const setCurrentTab = (newTab: "explore" | "planner" | "itinerary" | "fleet") => {
+    _setCurrentTab(newTab);
+    setTabHistory((prev) => {
+      // Avoid pushing duplicates next to each other
+      if (prev[prev.length - 1] === newTab) return prev;
+      return [...prev, newTab];
+    });
+  };
+
+  const handleGoBack = () => {
+    if (tabHistory.length > 1) {
+      const newHistory = [...tabHistory];
+      newHistory.pop(); // Remove current tab
+      const previousTab = newHistory[newHistory.length - 1]; // Get prior tab
+      setTabHistory(newHistory);
+      _setCurrentTab(previousTab);
+      // Smooth scroll if returning home
+      if (previousTab === "explore") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  };
+
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState("");
   const [itinerary, setItinerary] = useState<ItineraryResponse | null>(null);
@@ -261,6 +286,8 @@ export default function App() {
           }
         }}
         hasItinerary={!!itinerary}
+        canGoBack={tabHistory.length > 1}
+        onBack={handleGoBack}
       />
 
       {/* Main Pages Body Layout Container */}
