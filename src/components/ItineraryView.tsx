@@ -92,15 +92,29 @@ const RouteStopCard = ({ item, index }: { item: RouteStopItem; index: number; ke
 
 // Map some key search keywords to beautiful travel images
 const DESTINATION_IMAGES: { [key: string]: string } = {
-  "shimla": "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&q=80&w=800",
-  "manali": "https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&q=80&w=800",
-  "munnar": "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&q=80&w=800",
-  "coorg": "https://images.unsplash.com/photo-1588612140660-fbf8f58b8f2c?auto=format&fit=crop&q=80&w=800",
-  "jaipur": "https://images.unsplash.com/photo-1477584308802-e9c37c6a4120?auto=format&fit=crop&q=80&w=800",
-  "goa": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=800",
-  "kerala": "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&q=80&w=800",
-  "agra": "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=800",
-  "delhi": "https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&q=80&w=800"
+  "shimla": "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&q=80&w=1200",
+  "manali": "https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&q=80&w=1200",
+  "munnar": "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&q=80&w=1200",
+  "coorg": "https://images.unsplash.com/photo-1588612140660-fbf8f58b8f2c?auto=format&fit=crop&q=80&w=1200",
+  "jaipur": "https://images.unsplash.com/photo-1477584308802-e9c37c6a4120?auto=format&fit=crop&q=80&w=1200",
+  "goa": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1200",
+  "kerala": "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&q=80&w=1200",
+  "agra": "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=1200",
+  "delhi": "https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&q=80&w=1200",
+  "mysore": "https://images.unsplash.com/photo-1590050752117-238cb0612b1b?auto=format&fit=crop&q=80&w=1200",
+  "wayanad": "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&q=80&w=1200",
+  "alleppey": "https://images.unsplash.com/photo-1602216056096-3c40cc0c9944?auto=format&fit=crop&q=80&w=1200",
+  "alappuzha": "https://images.unsplash.com/photo-1602216056096-3c40cc0c9944?auto=format&fit=crop&q=80&w=1200",
+  "thekkady": "https://images.unsplash.com/photo-1588523315752-ef1d3ff3b0fe?auto=format&fit=crop&q=80&w=1200",
+  "ooty": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&q=80&w=1200",
+  "chikmagalur": "https://images.unsplash.com/photo-1595818944605-77983693fb04?auto=format&fit=crop&q=80&w=1200",
+  "pondicherry": "https://images.unsplash.com/photo-1589410990333-eaf6e1df6500?auto=format&fit=crop&q=80&w=1200",
+  "bangalore": "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&q=80&w=1200",
+  "bengaluru": "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&q=80&w=1200",
+  "kovalam": "https://images.unsplash.com/photo-1602216056096-3c40cc0c9944?auto=format&fit=crop&q=80&w=1200",
+  "rishikesh": "https://images.unsplash.com/photo-1542856391-010fb87dcfed?auto=format&fit=crop&q=80&w=1200",
+  "haridwar": "https://images.unsplash.com/photo-1542856391-010fb87dcfed?auto=format&fit=crop&q=80&w=1200",
+  "kumarakom": "https://images.unsplash.com/photo-1602216056096-3c40cc0c9944?auto=format&fit=crop&q=80&w=1200"
 };
 
 const LANDMARKS_REGISTRY: { [key: string]: { name: string; spots: string[] } } = {
@@ -378,6 +392,67 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
     return "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=800";
   };
 
+  // Get unique key popular spots/landmarks in the entire itinerary
+  const getItineraryLandmarks = () => {
+    const spots = new Set<string>();
+    if (!itinerary || !itinerary.days) return [];
+    
+    // Check custom landmarks matching
+    itinerary.days.forEach((day: any) => {
+      day.sightseeingOrder?.forEach((s: string) => {
+        if (s && s.trim().length > 2) {
+          spots.add(s.trim());
+        }
+      });
+    });
+
+    // Fallback directly to registry spots if empty
+    if (spots.size === 0) {
+      const destLower = itinerary.destination.toLowerCase();
+      for (const key in LANDMARKS_REGISTRY) {
+        if (destLower.includes(key)) {
+          LANDMARKS_REGISTRY[key].spots.forEach((s) => spots.add(s));
+        }
+      }
+    }
+    
+    return Array.from(spots).slice(0, 3); // top 3 for elegant balance
+  };
+
+  // Get beautiful imagery category based on spot/landmark name
+  const getSpotImage = (spotName: string) => {
+    const name = spotName.toLowerCase();
+    if (name.includes("palace") || name.includes("mysore") || name.includes("monument")) {
+      return "https://images.unsplash.com/photo-1590050752117-238cb0612b1b?auto=format&fit=crop&q=80&w=400";
+    }
+    if (name.includes("falls") || name.includes("waterfall") || name.includes("cascade")) {
+      return "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80&w=400";
+    }
+    if (name.includes("lake") || name.includes("boating") || name.includes("houseboat") || name.includes("backwater") || name.includes("river") || name.includes("dam")) {
+      return "https://images.unsplash.com/photo-1602216056096-3c40cc0c9944?auto=format&fit=crop&q=80&w=400";
+    }
+    if (name.includes("tea") || name.includes("estate") || name.includes("munnar") || name.includes("garden") || name.includes("hill") || name.includes("view") || name.includes("peak")) {
+      return "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&q=80&w=400";
+    }
+    if (name.includes("temple") || name.includes("church") || name.includes("ashram") || name.includes("monastery") || name.includes("cultural") || name.includes("tomb") || name.includes("minar") || name.includes("sightseeing")) {
+      return "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=400";
+    }
+    if (name.includes("safari") || name.includes("national park") || name.includes("sanctuary") || name.includes("elephant") || name.includes("zoo") || name.includes("jungle") || name.includes("camp")) {
+      return "https://images.unsplash.com/photo-1588523315752-ef1d3ff3b0fe?auto=format&fit=crop&q=80&w=400";
+    }
+    if (name.includes("beach") || name.includes("lighthouse") || name.includes("coast") || name.includes("sea")) {
+      return "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=400";
+    }
+    if (name.includes("fort") || name.includes("mahal") || name.includes("gate")) {
+      return "https://images.unsplash.com/photo-1477584308802-e9c37c6a4120?auto=format&fit=crop&q=80&w=400";
+    }
+    if (name.includes("coorg") || name.includes("plantation") || name.includes("forest") || name.includes("park") || name.includes("nature")) {
+      return "https://images.unsplash.com/photo-1588612140660-fbf8f58b8f2c?auto=format&fit=crop&q=80&w=400";
+    }
+    // Fallback high quality nature landscape
+    return "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=400";
+  };
+
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopiedLink(true);
@@ -431,11 +506,11 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
       </div>
       
       {/* 1. Header Hero Card with Frosted Glass Overlay */}
-      <div className="relative rounded-3xl overflow-hidden h-[260px] sm:h-[320px] shadow-xl border border-white/20">
+      <div className="relative rounded-3xl overflow-hidden h-[280px] sm:h-[340px] shadow-xl border border-white/20">
         <img 
           src={getDestinationImage()} 
           alt={itinerary.destination} 
-          className="w-full h-full object-cover absoulte inset-0"
+          className="w-full h-full object-cover absolute inset-0"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-900/10" />
         
@@ -468,35 +543,60 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
         </div>
 
         {/* Heading details inside image cover */}
-        <div className="absolute bottom-6 left-6 right-6 text-white space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="px-2.5 py-0.5 bg-emerald-500/20 backdrop-blur-md text-emerald-300 text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-500/20">
-              💎 Premium AI Plan
-            </span>
-            <span className="px-2.5 py-0.5 bg-sky-500/20 backdrop-blur-md text-sky-300 text-[10px] font-black uppercase tracking-widest rounded-full border border-sky-500/20">
-              {itinerary.tripType}
-            </span>
+        <div className="absolute bottom-6 left-6 right-6 text-white flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-2.5 py-0.5 bg-emerald-500/20 backdrop-blur-md text-emerald-300 text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-500/20">
+                💎 Premium AI Plan
+              </span>
+              <span className="px-2.5 py-0.5 bg-sky-500/20 backdrop-blur-md text-sky-300 text-[10px] font-black uppercase tracking-widest rounded-full border border-sky-500/20">
+                {itinerary.tripType}
+              </span>
+            </div>
+            
+            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight capitalize drop-shadow-sm">
+              Ultimate {itinerary.destination} Getaway
+            </h1>
+            
+            <p className="text-slate-200/95 text-xs sm:text-sm max-w-2xl flex flex-wrap items-center gap-y-1 gap-x-3 font-medium">
+              <span className="flex items-center gap-1">
+                <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />
+                From {itinerary.pickupLocation}
+              </span>
+              <span>&bull;</span>
+              <span className="flex items-center gap-1">
+                <Calendar className="w-4 h-4 text-sky-400 shrink-0" />
+                Departs {itinerary.travelDate}
+              </span>
+              <span>&bull;</span>
+              <span className="bg-white/10 px-2 py-0.5 rounded-md font-mono text-[11px] text-white">
+                {itinerary.days.length} Days / {itinerary.days.length - 1} Nights
+              </span>
+            </p>
           </div>
-          
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
-            Ultimate {itinerary.destination} Getaway
-          </h1>
-          
-          <p className="text-slate-200/95 text-xs sm:text-sm max-w-2xl flex flex-wrap items-center gap-y-1 gap-x-3 font-medium">
-            <span className="flex items-center gap-1">
-              <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />
-              From {itinerary.pickupLocation}
-            </span>
-            <span>&bull;</span>
-            <span className="flex items-center gap-1">
-              <Calendar className="w-4 h-4 text-sky-400 shrink-0" />
-              Departs {itinerary.travelDate}
-            </span>
-            <span>&bull;</span>
-            <span className="bg-white/10 px-2 py-0.5 rounded-md font-mono text-[11px] text-white">
-              {itinerary.days.length} Days / {itinerary.days.length - 1} Nights
-            </span>
-          </p>
+
+          {/* Right side: Beautiful visual thumbnails of popular places visited */}
+          {getItineraryLandmarks().length > 0 && (
+            <div id="header-spots-gallery" className="hidden md:flex items-center gap-3 shrink-0 mb-1 z-10">
+              {getItineraryLandmarks().map((spot, index) => (
+                <div 
+                  key={index} 
+                  className="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl overflow-hidden relative border border-white/25 shadow-lg group cursor-default hover:border-emerald-400 hover:scale-[1.03] transition-all duration-300 bg-slate-900/40 backdrop-blur-sm"
+                >
+                  <img 
+                    src={getSpotImage(spot)} 
+                    alt={spot} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-80 group-hover:opacity-100"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent" />
+                  <span className="absolute bottom-2 left-2 right-2 text-[9px] font-black text-white line-clamp-2 leading-snug text-left tracking-wide uppercase">
+                    {spot}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
