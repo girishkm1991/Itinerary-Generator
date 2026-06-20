@@ -22,7 +22,6 @@ import {
   ChevronDown,
   Mail,
   Phone,
-  HelpCircle,
   CarFront,
   Briefcase,
   Milestone,
@@ -87,29 +86,6 @@ const CURATED_DESTINATIONS = [
     request: "Traditional Rajasthani cultural dining at evening, visit Amber Fort early",
     rating: "4.9",
     reviews: "410"
-  }
-];
-
-const FAQS = [
-  {
-    question: "How does the AI Itinerary Generator calculate driving time and distance?",
-    answer: "Our engine uses geographical distance models combined with smart local transit metrics between your specified Pickup Location and Destination to estimate physical road distance and average driving hours safely."
-  },
-  {
-    question: "Are the private vehicle chauffeured models actually bookable?",
-    answer: "Yes, our designs are future-ready to plug directly into live CRM booking channels. The suggested passenger limits correspond strictly to authorized regional commercial fleet standards (Sedan, Innova, Traveller, Urbania)."
-  },
-  {
-    question: "Can I customize the generated AI schedule afterwards?",
-    answer: "Absolutely! You can use the 'Export PDF / Print' feature, copy the shareable link, or write custom instructions in the 'Special Requests' textarea before generation to re-align sights, culinary choices, and timings dynamically."
-  },
-  {
-    question: "Which destinations are currently optimized under imveloTripsIndia?",
-    answer: "We support worldwide route modeling with special focus on regional hotspots including mountain loops, coastal drives, heritage tours, and wildlife circuits. Standard regional breakfast and dinner recommendations are matched based on your route query."
-  },
-  {
-    question: "Do you support multi-city multi-stop itineraries?",
-    answer: "For complex multi-city schedules, you can specify individual intermediate locations in the 'Special Requests' input box and our model will align the daily sightseeing sequence chronologically."
   }
 ];
 
@@ -215,7 +191,6 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   const destinationsRef = useRef<HTMLDivElement>(null);
-  const faqRef = useRef<HTMLDivElement>(null);
 
   const handleSelectPreset = (preset: ItineraryRequest) => {
     setCurrentTab("planner");
@@ -432,31 +407,6 @@ export default function App() {
               </div>
             </section>
 
-            {/* Travel QA Board */}
-            <section ref={faqRef} className="max-w-4xl mx-auto scroll-mt-24 space-y-6 no-print">
-              <div className="text-center space-y-2">
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                  Expert Travel FAQs
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto">
-                  Clear answers to common questions about our smart route generator and vehicle class booking.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                {FAQS.map((faq, idx) => (
-                  <div key={idx} className="bg-white/50 backdrop-blur-md rounded-2xl p-5 border border-slate-200/50 space-y-2 hover:bg-white transition-all">
-                    <h4 className="font-bold text-sm sm:text-base text-slate-800 flex items-start gap-2">
-                      <HelpCircle className="w-5 h-5 text-sky-500 shrink-0 mt-0.5" />
-                      {faq.question}
-                    </h4>
-                    <p className="text-xs sm:text-sm text-slate-500 leading-relaxed pl-7">
-                      {faq.answer}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
           </div>
         )}
 

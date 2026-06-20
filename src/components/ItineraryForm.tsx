@@ -636,7 +636,7 @@ export default function ItineraryForm({ onSubmit, loading, onSelectPreset }: Iti
           </div>
 
           {/* Custom place insertion field */}
-          <div className="space-y-1.5 pt-2 border-t border-slate-200 flex items-center gap-2">
+          <div className="space-y-1.5 pt-2 border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <input
               type="text"
               placeholder="Type any other real place name (e.g. Abbey Falls) and click Add"
@@ -653,7 +653,7 @@ export default function ItineraryForm({ onSubmit, loading, onSelectPreset }: Iti
                   }
                 }
               }}
-              className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-slate-800 text-xs font-medium"
+              className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-slate-800 text-xs font-medium"
             />
             <button
               type="button"
@@ -665,7 +665,7 @@ export default function ItineraryForm({ onSubmit, loading, onSelectPreset }: Iti
                   setCustomPlaceInput("");
                 }
               }}
-              className="px-4 py-2 bg-slate-850 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition-all h-full cursor-pointer shrink-0"
+              className="px-4 py-2.5 bg-slate-850 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shrink-0 text-center"
             >
               + Add Place
             </button>
