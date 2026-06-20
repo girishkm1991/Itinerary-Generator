@@ -39,6 +39,40 @@ interface RouteStopItem {
   location: string;
 }
 
+// Get beautiful imagery category based on spot/landmark name
+const getSpotImage = (spotName: string) => {
+  const name = spotName.toLowerCase();
+  if (name.includes("palace") || name.includes("mysore") || name.includes("monument")) {
+    return "https://images.unsplash.com/photo-1590050752117-238cb0612b1b?auto=format&fit=crop&q=80&w=400";
+  }
+  if (name.includes("falls") || name.includes("waterfall") || name.includes("cascade")) {
+    return "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80&w=400";
+  }
+  if (name.includes("lake") || name.includes("boating") || name.includes("houseboat") || name.includes("backwater") || name.includes("river") || name.includes("dam")) {
+    return "https://images.unsplash.com/photo-1602216056096-3c40cc0c9944?auto=format&fit=crop&q=80&w=400";
+  }
+  if (name.includes("tea") || name.includes("estate") || name.includes("munnar") || name.includes("garden") || name.includes("hill") || name.includes("view") || name.includes("peak")) {
+    return "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&q=80&w=400";
+  }
+  if (name.includes("temple") || name.includes("church") || name.includes("ashram") || name.includes("monastery") || name.includes("cultural") || name.includes("tomb") || name.includes("minar") || name.includes("sightseeing")) {
+    return "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=400";
+  }
+  if (name.includes("safari") || name.includes("national park") || name.includes("sanctuary") || name.includes("elephant") || name.includes("zoo") || name.includes("jungle") || name.includes("camp")) {
+    return "https://images.unsplash.com/photo-1588523315752-ef1d3ff3b0fe?auto=format&fit=crop&q=80&w=400";
+  }
+  if (name.includes("beach") || name.includes("lighthouse") || name.includes("coast") || name.includes("sea")) {
+    return "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=400";
+  }
+  if (name.includes("fort") || name.includes("mahal") || name.includes("gate")) {
+    return "https://images.unsplash.com/photo-1477584308802-e9c37c6a4120?auto=format&fit=crop&q=80&w=400";
+  }
+  if (name.includes("coorg") || name.includes("plantation") || name.includes("forest") || name.includes("park") || name.includes("nature")) {
+    return "https://images.unsplash.com/photo-1588612140660-fbf8f58b8f2c?auto=format&fit=crop&q=80&w=400";
+  }
+  // Fallback high quality nature landscape
+  return "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=400";
+};
+
 const RouteStopCard = ({ item, index }: { item: RouteStopItem; index: number; key?: any }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const words = item.description.split(" ");
@@ -51,40 +85,53 @@ const RouteStopCard = ({ item, index }: { item: RouteStopItem; index: number; ke
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: Math.min(index * 0.05, 0.3), duration: 0.35, ease: "easeOut" }}
-      className="relative space-y-2 p-4 rounded-2xl bg-white hover:bg-sky-50/[0.02] border border-slate-100 shadow-sm hover:shadow transition-all duration-300 group"
+      className="relative p-4 rounded-2xl bg-white hover:bg-sky-50/[0.02] border border-slate-100 shadow-sm hover:shadow transition-all duration-300 group flex gap-4 items-start"
     >
       {/* Left colored dot connector */}
       <div className="absolute -left-[2px] -translate-x-[21px] top-6 w-2.5 h-2.5 rounded-full bg-sky-500 ring-4 ring-white group-hover:bg-emerald-500 group-hover:scale-125 transition-all duration-300" />
       
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-0.5">
-        <span className="text-[10px] font-black text-sky-600 font-mono bg-sky-50 px-2.5 py-0.5 rounded-lg border border-sky-100/60 self-start tracking-wide">
-          {item.scheduledTime}
-        </span>
-        <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1 self-start sm:self-auto">
-          <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-          {item.location}
-        </span>
+      {/* Small visiting place image */}
+      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 relative border border-slate-150/80 shadow-sm bg-slate-100">
+        <img 
+          src={getSpotImage(item.spot || item.activityTitle)} 
+          alt={item.spot || item.activityTitle} 
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          referrerPolicy="no-referrer"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent" />
       </div>
-      
-      <h5 className="text-[13px] sm:text-sm font-extrabold text-slate-800 tracking-tight group-hover:text-sky-700 transition-colors">
-        {item.activityTitle}
-      </h5>
 
-      <div className="text-[12px] text-slate-500 leading-relaxed font-medium">
-        <p className="inline text-slate-600">
-          {isExpanded ? item.description : shortDescription}
-        </p>
+      <div className="flex-1 space-y-1.5 min-w-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-0.5">
+          <span className="text-[10px] font-black text-sky-600 font-mono bg-sky-50 px-2.5 py-0.5 rounded-lg border border-sky-100/60 self-start tracking-wide">
+            {item.scheduledTime}
+          </span>
+          <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1 self-start sm:self-auto truncate">
+            <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+            {item.location}
+          </span>
+        </div>
+        
+        <h5 className="text-[13px] sm:text-sm font-extrabold text-slate-800 tracking-tight group-hover:text-sky-700 transition-colors">
+          {item.activityTitle}
+        </h5>
 
-        {words.length > 8 && (
-          <button
-            type="button"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="ml-2 inline-flex items-center gap-0.5 text-[10px] font-black text-sky-600 hover:text-sky-700 transition-colors uppercase cursor-pointer select-none bg-sky-50 border border-sky-100/50 hover:bg-sky-100 px-1.5 py-0.5 rounded-md"
-          >
-            <span>{isExpanded ? "Hide Description" : "Read Guide"}</span>
-            <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isExpanded ? "rotate-180 text-sky-700" : "text-sky-500"}`} />
-          </button>
-        )}
+        <div className="text-[12px] text-slate-500 leading-relaxed font-medium">
+          <p className="inline text-slate-600">
+            {isExpanded ? item.description : shortDescription}
+          </p>
+
+          {words.length > 8 && (
+            <button
+              type="button"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="ml-2 inline-flex items-center gap-0.5 text-[10px] font-black text-sky-600 hover:text-sky-700 transition-colors uppercase cursor-pointer select-none bg-sky-50 border border-sky-100/50 hover:bg-sky-100 px-1.5 py-0.5 rounded-md"
+            >
+              <span>{isExpanded ? "Hide Description" : "Read Guide"}</span>
+              <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isExpanded ? "rotate-180 text-sky-700" : "text-sky-500"}`} />
+            </button>
+          )}
+        </div>
       </div>
     </motion.div>
   );
@@ -419,39 +466,7 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
     return Array.from(spots).slice(0, 3); // top 3 for elegant balance
   };
 
-  // Get beautiful imagery category based on spot/landmark name
-  const getSpotImage = (spotName: string) => {
-    const name = spotName.toLowerCase();
-    if (name.includes("palace") || name.includes("mysore") || name.includes("monument")) {
-      return "https://images.unsplash.com/photo-1590050752117-238cb0612b1b?auto=format&fit=crop&q=80&w=400";
-    }
-    if (name.includes("falls") || name.includes("waterfall") || name.includes("cascade")) {
-      return "https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80&w=400";
-    }
-    if (name.includes("lake") || name.includes("boating") || name.includes("houseboat") || name.includes("backwater") || name.includes("river") || name.includes("dam")) {
-      return "https://images.unsplash.com/photo-1602216056096-3c40cc0c9944?auto=format&fit=crop&q=80&w=400";
-    }
-    if (name.includes("tea") || name.includes("estate") || name.includes("munnar") || name.includes("garden") || name.includes("hill") || name.includes("view") || name.includes("peak")) {
-      return "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&q=80&w=400";
-    }
-    if (name.includes("temple") || name.includes("church") || name.includes("ashram") || name.includes("monastery") || name.includes("cultural") || name.includes("tomb") || name.includes("minar") || name.includes("sightseeing")) {
-      return "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=400";
-    }
-    if (name.includes("safari") || name.includes("national park") || name.includes("sanctuary") || name.includes("elephant") || name.includes("zoo") || name.includes("jungle") || name.includes("camp")) {
-      return "https://images.unsplash.com/photo-1588523315752-ef1d3ff3b0fe?auto=format&fit=crop&q=80&w=400";
-    }
-    if (name.includes("beach") || name.includes("lighthouse") || name.includes("coast") || name.includes("sea")) {
-      return "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=400";
-    }
-    if (name.includes("fort") || name.includes("mahal") || name.includes("gate")) {
-      return "https://images.unsplash.com/photo-1477584308802-e9c37c6a4120?auto=format&fit=crop&q=80&w=400";
-    }
-    if (name.includes("coorg") || name.includes("plantation") || name.includes("forest") || name.includes("park") || name.includes("nature")) {
-      return "https://images.unsplash.com/photo-1588612140660-fbf8f58b8f2c?auto=format&fit=crop&q=80&w=400";
-    }
-    // Fallback high quality nature landscape
-    return "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=400";
-  };
+  // Note: getSpotImage helper moved to file-level scope for multi-component reuse
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -834,13 +849,25 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                                   verified landmarks visited during today's schedule:
                                 </p>
 
-                                <ul className="space-y-2 text-[11px] text-slate-600 font-semibold font-sans pt-1">
+                                <ul className="grid grid-cols-1 gap-2.5 text-[11px] text-slate-600 font-semibold font-sans pt-1">
                                   {getDayAttractions(day).map((item, idx) => (
-                                    <li key={idx} className="flex items-start gap-2.5 bg-white border border-slate-100 rounded-xl p-2.5 shadow-sm transition-all hover:border-sky-200/60 hover:bg-sky-50/[0.05]">
-                                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                                      <div className="space-y-0.5">
-                                        <span className="text-slate-800 text-xs font-bold block">{item.spot}</span>
-                                        <span className="text-[9px] bg-slate-100 border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono font-black uppercase">
+                                    <li key={idx} className="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl p-2 shadow-sm transition-all hover:border-sky-200/60 hover:bg-sky-50/[0.05] group/item hover:shadow-md">
+                                      <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 relative border border-slate-150 bg-slate-50 shadow-xs">
+                                        <img 
+                                          src={getSpotImage(item.spot)} 
+                                          alt={item.spot} 
+                                          className="w-full h-full object-cover group-hover/item:scale-112 transition-transform duration-300"
+                                          referrerPolicy="no-referrer"
+                                        />
+                                        <div className="absolute inset-0 bg-slate-900/10" />
+                                      </div>
+                                      
+                                      <div className="flex-1 min-w-0 space-y-0.5">
+                                        <div className="flex items-center gap-1.5">
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                          <span className="text-slate-800 text-xs font-black truncate">{item.spot}</span>
+                                        </div>
+                                        <span className="text-[9px] inline-block bg-slate-100 border border-slate-200/50 text-slate-500 px-1.5 py-0.5 rounded font-mono font-extrabold uppercase">
                                           {item.scheduledTime}
                                         </span>
                                       </div>
@@ -869,17 +896,23 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
                                <Navigation className="w-3.5 h-3.5 text-emerald-500" /> RECOMMENDED VISITING ORDER
                              </div>
-                            <div className="flex flex-wrap items-center gap-y-1.5 gap-x-2 text-xs font-semibold text-slate-700">
-                              {day.sightseeingOrder.map((spot, spIdx) => (
-                                <span key={spIdx} className="flex items-center gap-2">
-                                  {spIdx > 0 && <ArrowRight className="w-3.5 h-3.5 text-slate-300" />}
-                                  <span className="px-2 py-1 bg-slate-100 hover:bg-sky-50 transition-colors rounded-lg border border-slate-200/50">
-                                    {spot}
-                                  </span>
-                                </span>
-                              ))}
-                            </div>
-                          </div>
+                             <div className="flex flex-wrap items-center gap-y-2 gap-x-2 text-xs font-bold text-slate-700">
+                               {day.sightseeingOrder.map((spot, spIdx) => (
+                                 <span key={spIdx} className="flex items-center gap-2">
+                                   {spIdx > 0 && <ArrowRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />}
+                                   <span className="inline-flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 bg-slate-50 hover:bg-sky-50 transition-colors rounded-full border border-slate-200/60 shadow-xs">
+                                     <img 
+                                       src={getSpotImage(spot)} 
+                                       alt={spot} 
+                                       className="w-4 h-4 rounded-full object-cover shrink-0 border border-white shadow-xs"
+                                       referrerPolicy="no-referrer"
+                                     />
+                                     <span className="text-slate-700 text-xs tracking-tight font-extrabold">{spot}</span>
+                                   </span>
+                                 </span>
+                               ))}
+                             </div>
+                           </div>
 
                           {/* Meal recommendations */}
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
