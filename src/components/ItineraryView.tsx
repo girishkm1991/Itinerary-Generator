@@ -635,10 +635,10 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                       {/* Main Sightseeing Timeline & Landmarks (Merged) */}
                       {getDayAttractions(day).length > 0 ? (
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-1">
-                          {/* Left / Main Column: Hourly timeline */}
+                          {/* Left / Main Column: Transit timeline */}
                           <div className="lg:col-span-7 space-y-4">
                             <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5 border-b border-slate-100 pb-2">
-                              <Clock className="w-4 h-4 text-sky-500" /> Curated Hourly Sightseeing Activity
+                              <Navigation className="w-4 h-4 text-sky-500" /> Visiting Route Transit Order (Sequential Stops)
                             </h4>
 
                             <div className="relative border-l border-sky-100 pl-4 ml-2 space-y-6 pt-2">
@@ -684,7 +684,7 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                                   <div className="space-y-0.5">
                                     <span className="text-slate-800 text-xs font-bold block">{item.spot}</span>
                                     <span className="text-[9px] bg-slate-100 border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-mono font-black uppercase">
-                                      Scheduled {item.scheduledTime}
+                                      {item.scheduledTime}
                                     </span>
                                   </div>
                                 </li>
@@ -696,7 +696,7 @@ export default function ItineraryView({ itinerary, onReset }: ItineraryViewProps
                         /* Simple Fallback when no attractions map to the day */
                         <div className="space-y-4">
                           <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                            Curated Hourly Sightseeing Activity
+                            Visiting Route Transit Order (Sequential Stops)
                           </h4>
 
                           <div className="relative border-l border-sky-100 pl-4 ml-2 space-y-6">

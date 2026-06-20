@@ -442,12 +442,8 @@ function generateMockItinerary(reqBody: any): any {
     }
 
     const activities = daySpots.map((spot, spotIdx) => {
-      const hours = 9 + spotIdx * 3;
-      const ampm = hours >= 12 ? "PM" : "AM";
-      const formattedHour = hours > 12 ? hours - 12 : hours;
-      const timeStr = `${String(formattedHour).padStart(2, '0')}:00 ${ampm}`;
       return {
-        time: timeStr,
+        time: `Transit Stop ${spotIdx + 1}`,
         title: `Curated Sightseeing at ${spot}`,
         description: `Explore the magnificent architecture, stunning vistas, and local historical facets of ${spot}. Spend quality time enjoying activities.`,
         location: spot
@@ -456,7 +452,7 @@ function generateMockItinerary(reqBody: any): any {
 
     if (activities.length === 0) {
       activities.push({
-        time: "10:30 AM",
+        time: "Transit Stop 1",
         title: "Leisure Exploration & Shopping",
         description: `Dedicated leisure day window in ${destination}. Stroll across regional craft boutiques and enjoy local street flavors at your absolute pacing preference.`,
         location: `${destination} Town Center`
@@ -567,7 +563,7 @@ ABSOLUTE MANDATORY RULES FOR PLACES AND SIGHTSEEING:
 6. NEVER invent generic landmarks or sightseeing locations (e.g., do NOT generate "Grand City Palace", "Beautiful Scenic Overlook", "Heritage Museum", "Adventure Sports Arena", "Mystic Botanical Gardens", "Sunset View Point", "Cultural Village", "Scenic Lake", or "Historic Fort").
 7. GEOGRAPHICAL GROUPING RULE: You MUST cluster the selected places by city/region/sub-area. For example, if some selected places are in Munnar and others are in Thekkady, make sure Munnar places are scheduled together on one day (e.g. Day 1), and Thekkady places are scheduled together on a different day (e.g. Day 2). DO NOT mix places from different remote cities/areas on the same day. Each day should be dedicated to a single main city/region.
 
-Make sure to estimate travel distance (KM) and total driving time realistically based on the route between ${pickupLocation} and ${destination}. Suggest Breakfast, Lunch, Dinner, optimized sightseeing order, specific timestamps, activities, daily highlights, night stay locations, return journey on the final day, and three helpful travel tips. Provide an estimated cost range in INR (Indian Rupees) representing the total package premium feel.`;
+Make sure to estimate travel distance (KM) and total driving time realistically based on the route between ${pickupLocation} and ${destination}. Suggest Breakfast, Lunch, Dinner, optimized daily sightseeing transit order, sequential transit stops (e.g. "Transit Stop 1", "Transit Stop 2" in order of visit), activities, daily highlights, night stay locations, return journey on the final day, and three helpful travel tips. Provide an estimated cost range in INR (Indian Rupees) representing the total package premium feel.`;
 
     console.log("Sending itinerary request to Gemini API...");
     const response = await ai.models.generateContent({
@@ -617,7 +613,7 @@ Make sure to estimate travel distance (KM) and total driving time realistically 
                     items: {
                       type: Type.OBJECT,
                       properties: {
-                        time: { type: Type.STRING, description: "e.g., '09:00 AM' or '03:00 PM'" },
+                        time: { type: Type.STRING, description: "Sequential transit step name e.g., 'Transit Stop 1' or 'Transit Stop 2' indicating visit sequence" },
                         title: { type: Type.STRING, description: "Short title of activity" },
                         description: { type: Type.STRING, description: "Detailed summary of what they will see or do" },
                         location: { type: Type.STRING, description: "Name of the spot/place" }
